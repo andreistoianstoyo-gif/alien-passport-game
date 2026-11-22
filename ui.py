@@ -6,6 +6,7 @@ if __name__ == "__main__":
     clock = pygame.time.Clock()
 
     from alien import Alien
+    from rules import generate_rules 
     test_alien = Alien()
     test_rule = "Check the passsport expiration date and species colour"
     #passport
@@ -32,8 +33,8 @@ if __name__ == "__main__":
     alien_img = pygame.transform.scale(alien_img, (192,192))
 
     rules_icon = pygame.image.load("assets/sprites/rules.png").convert_alpha()
-    rules_icon = pygame.transform.scale(rules_icon,(64,64))
-    rules_icon_rect = rules_icon.get_rect(topright=(1230,30))
+    rules_icon = pygame.transform.scale(rules_icon,(192,192))
+    rules_icon_rect = rules_icon.get_rect(topright=(1305,0))
     rules_open = True
     rules_scale = 1.0
     screen.blit(rules_icon, rules_icon_rect)
@@ -52,8 +53,6 @@ if __name__ == "__main__":
             if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                 rules_open = not rules_open
             
-        target_scale = 1.0 if rules_open else 0.2
-        rules_scale += (target_scale - rules_scale) * 12 * dt
 
         pygame.display.set_caption(f"MOUSE: {pygame.mouse.get_pos()}")
         
@@ -68,8 +67,8 @@ if __name__ == "__main__":
         screen.blit(passport_text,(passport_rect.x+50,passport_rect.y+20))
 
         #APPROVE BUTTON
-        mouse_pos_approve_button = pygame.mouse.get_pos()
-        hover_colour_approve_button = (50,240,100) if approve_button.collidepoint(mouse_pos_approve_button) else (0,200,0)
+        mouse_pos = pygame.mouse.get_pos()
+        hover_colour_approve_button = (50,240,100) if approve_button.collidepoint(mouse_pos) else (0,200,0)
 
         pygame.draw.rect(screen,(15,17,24),approve_button_shadow,0,17)
         pygame.draw.rect(screen,(0,128,0),approve_button,0,20)
@@ -94,34 +93,38 @@ if __name__ == "__main__":
         screen.blit(deny_button_text,deny_button_text_center)
 
         #DAILY RULES
-        pygame.draw.rect(screen,(15,17,24),rules_shadow,0,17)
-        pygame.draw.rect(screen,(246,236,215),rules,0,17)
-        pygame.draw.rect(screen,(125,87,46),rules_border,7,20)
+        
+        if rules_icon_rect.collidepoint(mouse_pos):
+            screen.blit(rules_icon, (rules_icon_rect.x,rules_icon_rect.y-3))
+        else:
+            screen.blit(rules_icon, rules_icon_rect)
 
-        rules_text = font.render("DAILY RULES", True, "black")
-        screen.blit(rules_text,(rules.x + 67,rules.y + 30))
+        target_scale = 1.0 if rules_open else 0.0
+        rules_scale += (target_scale - rules_scale) * 20 * dt
 
 
         
-
-        
-        
-
         if rules_scale > 0.05:
-            WIDTH, HEIGHT = 300,480
-            rules_surface = pygame.Surface((WIDTH,HEIGHT),pygame.SRCALPHA)
+            WIDTH, HEIGHT = 290 , 480
+            rules_surface = pygame.Surface((WIDTH + 15,HEIGHT + 15),pygame.SRCALPHA)
 
-            pygame.draw.rect(rules_surface,(20,20,20,20), (0,0,WIDTH,HEIGHT),0,17)
-            pygame.draw.rect(rules_surface,(0,200,200), (0,0,WIDTH,HEIGHT),0,17)
+            pygame.draw.rect(rules_surface, (15,17,24),(15,15,WIDTH,HEIGHT),0,17)
+            pygame.draw.rect(rules_surface, (0,190,230),(0,0,WIDTH,HEIGHT),0,17)
+            pygame.draw.rect(rules_surface, (10,75,220),(0,0,WIDTH+3,HEIGHT+3),7,20)
+            
 
-            title = font.render("DAILY RULES", True, (0,200,220))
-            rules_surface.blit(title,(45,45))
+            rules_title = font.render("DAILY RULES", True, "black")
+            rules_title_rect = rules_title.get_rect(centerx = WIDTH//2, y = 20)
+            rules_surface.blit(rules_title, rules_title_rect)
+            pygame.draw.line(rules_surface, (12,17,24), (25,60),(WIDTH - 25, 60),3)
+            pygame.draw.line(rules_surface, (200,200,0),(100,0),(WIDTH - 100,0),12)
+            
 
             NEW_WIDTH = max(1,int(WIDTH * rules_scale))
             NEW_HEIGHT = max(1,int(HEIGHT * rules_scale))
             scaled_panel = pygame.transform.scale(rules_surface, (NEW_WIDTH,NEW_HEIGHT))
 
-            scaled_rect = scaled_panel.get_rect(topright=(rules_icon_rect.right, rules_icon_rect.bottom + 30))
+            scaled_rect = scaled_panel.get_rect(topright=(1250,40))
             screen.blit(scaled_panel, scaled_rect)
 
         #ALIEN IMAGE
