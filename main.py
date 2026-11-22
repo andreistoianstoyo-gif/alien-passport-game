@@ -9,32 +9,6 @@ clock = pygame.time.Clock()
 running = True
 dt = 0
 
-#random alien generator
-NAMES = ["Zyx Kor","Pip Xenox","Bloop Lesan","Gorgon Delerak","Vela Nueva","Beene Buzy"]
-PLANETS = ["Mars","Zorgon-67","Volor","Darialand","Titan"]
-
-def generate_alien():
-    return{
-        "name": random.choice(NAMES),
-        "planet": random.choice(PLANETS),
-        "expires": random.randint(2024,2040)
-    }
-current_alien = generate_alien()
-
-#random rule generator
-RULE = [
-    "Check the passport availability",
-    "Check the number of eyes",
-    "Check the colour of the alien",
-    "Check the number of members",
-    "Check the species accordingly to the planet"
-]
-def generate_rules():
-    return{
-        "RULE":random.choice(RULE)
-    }
-current_rule = generate_rules()
-
 passport_rect = pygame.Rect(100,30,420,480)
 approve_button = pygame.Rect(350,625,225,60)
 deny_button = pygame.Rect(700,625,225,60)
