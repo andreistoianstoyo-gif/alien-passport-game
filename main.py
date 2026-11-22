@@ -9,6 +9,7 @@ clock = pygame.time.Clock()
 running = True
 dt = 0
 
+#random alien generator
 NAMES = ["Zyx Kor","Pip Xenox","Bloop Lesan","Gorgon Delerak","Vela Nueva","Beene Buzy"]
 PLANETS = ["Mars","Zorgon-67","Volor","Darialand","Titan"]
 
@@ -20,28 +21,44 @@ def generate_alien():
     }
 current_alien = generate_alien()
 
+#random rule generator
+RULE = [
+    "Check the passport availability",
+    "Check the number of eyes",
+    "Check the colour of the alien",
+    "Check the number of members",
+    "Check the species accordingly to the planet"
+]
+def generate_rules():
+    return{
+        "RULE":random.choice(RULE)
+    }
+current_rule = generate_rules()
+
 passport_rect = pygame.Rect(100,30,420,480)
 approve_button = pygame.Rect(350,625,225,60)
 deny_button = pygame.Rect(700,625,225,60)
 rules_rect = pygame.Rect(1000,50,225,550)
 font_button = pygame.font.SysFont("arial", 28, bold = True)
 font_title = pygame.font.SysFont("arial", 24, bold = True)
+rule_font = pygame.font.SysFont("arial",16, bold = True)
 
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 background = (25,28,38)
 
 while running == True:
+    screen.fill(background)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if approve_button.collidepoint(event.pos):
                 current_alien = generate_alien()
+                pygame.draw.rect(screen,(1,50,32),approve_button)
                 print("Alien APPROVED!")
             elif deny_button.collidepoint(event.pos):
                 print("Alien DENIED")
                 current_alien = generate_alien()
-    screen.fill(background)
     pygame.draw.rect(screen, (235,230,215), passport_rect)
     pygame.draw.rect(screen,("green"),approve_button)
     pygame.draw.rect(screen,("red"),deny_button)
@@ -55,6 +72,8 @@ while running == True:
     #DAILY RULES
     daily_rules = font_title.render("DAILY RULES", True, "yellow")
     screen.blit(daily_rules,(rules_rect.x + 25, rules_rect.y + 10))
+    rule_one = rule_font.render(f"RULE NO.1: {current_rule['RULE']}",True,"yellow")
+    screen.blit(rule_one,(rules_rect.x + 15, rules_rect.y + 40))
     #PASSPORT
     passport_title = font_title.render("GALACTIC PASSPORT",True,"black")
     screen.blit(passport_title,(passport_rect.x+75,passport_rect.y + 15))
