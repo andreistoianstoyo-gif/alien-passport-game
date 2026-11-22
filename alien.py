@@ -16,7 +16,7 @@ class Alien:
         #45% chance to be an anomaly
         if random.random() < 0.45:
             anomaly = random.choice(["expiration_date","eyes","colour"])
-            if anomaly == "expired":
+            if anomaly == "expiration_date":
                 s.expiration_date = random.randint(2022,2025)
             elif anomaly == "eyes":
                 s.eyes += 1
