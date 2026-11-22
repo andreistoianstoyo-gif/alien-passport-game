@@ -1,5 +1,4 @@
 import pygame
-import random
 
 pygame.init()
 LENGTH, HEIGHT = 1280,720
@@ -48,15 +47,7 @@ while running == True:
     screen.blit(daily_rules,(rules_rect.x + 25, rules_rect.y + 10))
     rule_one = rule_font.render(f"RULE NO.1: {current_rule['RULE']}",True,"yellow")
     screen.blit(rule_one,(rules_rect.x + 15, rules_rect.y + 40))
-    #PASSPORT
-    passport_title = font_title.render("GALACTIC PASSPORT",True,"black")
-    screen.blit(passport_title,(passport_rect.x+75,passport_rect.y + 15))
-    alien_name = font_title.render(f"Name: {current_alien['name']}",True,"black")
-    screen.blit(alien_name,(passport_rect.x+25,passport_rect.y+60))
-    alien_planet = font_title.render(f"Planet: {current_alien['planet']}",True,"black") 
-    screen.blit(alien_planet,(passport_rect.x+25,passport_rect.y+120))
-    alien_passport_expiration_date = font_title.render(f"Expiration date: {current_alien['expires']}",True,"black")
-    screen.blit(alien_passport_expiration_date,(passport_rect.x+25,passport_rect.y+180))
+   
     
    
     pygame.display.flip()

@@ -1,28 +1,11 @@
-import pygame
-import random
-
-#random alien generator
 NAMES = ["Zyx Kor","Pip Xenox","Bloop Lesan","Gorgon Delerak","Vela Nueva","Beene Buzy"]
 PLANETS = ["Mars","Zorgon-67","Volor","Darialand","Titan"]
 
-def generate_alien():
-    return{
-        "name": random.choice(NAMES),
-        "planet": random.choice(PLANETS),
-        "expires": random.randint(2024,2040)
-    }
-current_alien = generate_alien()
-
-#random rule generator
-RULE = [
-    "Check the passport availability",
-    "Check the number of eyes",
-    "Check the colour of the alien",
-    "Check the number of members",
-    "Check the species accordingly to the planet"
-]
-def generate_rules():
-    return{
-        "RULE":random.choice(RULE)
-    }
-current_rule = generate_rules()
+#normal characteristics
+PLANET_SPECIES = {
+    "Mars":{"eyes":2,"colour":"green","limbs":4},
+    "Zorgon-67":{"eyes":2,"colour":"purple","limbs":6},
+    "Volor":{"eyes":1,"colour":"blue","limbs":2},
+    "Darialand":{"eyes":4,"colour":"yellow","limbs":4},
+    "Titan":{"eyes":2, "colour":"red","limbs":8},
+}
