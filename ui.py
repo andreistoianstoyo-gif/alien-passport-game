@@ -25,8 +25,8 @@ class PixelButton:
         s.offset += (offset_value - s.offset) * 0.2
 
         #fixed shadow(8-bit style x)
-        shadow_rect = pygame.Rect(s.rect.x + 10,s.rect.y + 5,s.rect.width,s.rect.height)
-        pygame.draw.rect(screen, (15,17,24), shadow_rect)
+        shadow_rect = pygame.Rect(s.rect.x + 10,s.rect.y + 10,s.rect.width,s.rect.height)
+        pygame.draw.rect(screen, (10,12,18), shadow_rect)
 
         #the button duh
         button_surface = pygame.Surface((s.rect.width,s.rect.height))
@@ -149,13 +149,33 @@ if __name__ == "__main__":
         pygame.display.set_caption(f"MOUSE: {pygame.mouse.get_pos()}")
         
 
-        screen.fill((50,31,46))
+        screen.fill((58,68,88))
         #PASSPORT
+        passport_text = font.render("GALACTIC PASSPORT",True, "black")
         pixel_8_bit_border(screen,passport_shadow,"black","black", notch = 8, border = 6)
         pixel_8_bit_border(screen,passport_rect,"white","grey",notch = 6,border = 6)
-        pygame.draw.line(screen,"grey",(120,110),(415,110),3)
-        passport_text = font.render("GALACTIC PASSPORT",True, "black")
-        screen.blit(passport_text,(passport_rect.x+50,passport_rect.y+20))
+
+        passport_text - font.render("GALACTIC PASSPORT", True, "black")
+        screen.blit(passport_text, (passport_rect.x + 48, passport_rect.y + 18))
+        pygame.draw.line(screen,"grey",(passport_rect.x + 25,passport_rect.y + 56),(passport_rect.right - 25, passport_rect.y + 56), 3)
+
+        photo_rect = pygame.Rect(passport_rect.x + 25, passport_rect.y + 70, 120,125)
+        pygame.draw.rect(screen,(220,225,230),photo_rect)
+        pygame.draw.rect(screen. "grey", photo_rect,4)
+        mini_photo = pygame.transform.scale(alien_img,(100,100))
+        screen.blit(mini_photo, (photo_rect.x + 0, photo_rect.y + 12))
+
+        screen.blit(rule_font.render("CLASS: TRANSIT", True, (90,95,105)),(passport_rect.x + 160, passport_rect.y + 75))
+        screen.blit(rule_font.render("DOCUMENT ID: #42351", True, (90,95,105)),(passport_rect.x + 160, passport_rect.y +100))
+        screen.blit(rule_font.render("SECTOR: OUTER GALAXY", True, (90,95,105)),(passport_rect.x+160, passport_rect.y+150))
+
+        fields = [
+            ("FULL NAME", test_alien.passport.name, passport_rect.y + 200),
+            ("ORIGIN PLANET", test_alien.passport.planet, passport_rect.y + 270)
+            ("EXPIRATION YEAR", str(test_alien.passport.expiration_date), passport_rect.y + 340)
+        ]
+
+        
 
         #BUTTONS
         mouse_pos = pygame.mouse.get_pos()
@@ -192,7 +212,7 @@ if __name__ == "__main__":
             rules_title = font.render("DAILY RULES", True, "black")
             rules_title_rect = rules_title.get_rect(centerx = WIDTH//2, y = 20+TRANSPARENT_BORDER)
             rules_surface.blit(rules_title, rules_title_rect)
-            pygame.draw.line(rules_surface, (12,17,24), (25,55+TRANSPARENT_BORDER),(WIDTH - 25, 55+ TRANSPARENT_BORDER),3)
+            pygame.draw.line(rules_surface, (12,17,24), (25,55+TRANSPARENT_BORDER),(WIDTH - 25, 55 + TRANSPARENT_BORDER),3)
             pygame.draw.line(rules_surface, (200,200,0),(100,3+TRANSPARENT_BORDER),(WIDTH - 100,3+TRANSPARENT_BORDER),7)
             pygame.draw.line(rules_surface, (220,220,0),(100,TRANSPARENT_BORDER),(WIDTH-100,TRANSPARENT_BORDER),12)
             pygame.draw.line(rules_surface, (220,220,0),(100,TRANSPARENT_BORDER),(WIDTH-100,TRANSPARENT_BORDER),12)
@@ -213,8 +233,6 @@ if __name__ == "__main__":
             scaled_rect = scaled_panel.get_rect(topright=(1250,30))
             screen.blit(scaled_panel, scaled_rect)
 
-        #ALIEN IMAGE
-        screen.blit(alien_img, (50,75))
         
         
         pygame.display.flip()
