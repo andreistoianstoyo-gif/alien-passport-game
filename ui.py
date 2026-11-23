@@ -162,10 +162,34 @@ if __name__ == "__main__":
                 if event.key == pygame.K_p:
                     passport_is_opened = not passport_is_opened
                     dragging_passport = False
-             
+            
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if rules_icon_rect.collidepoint(event.pos):
                     rules_open = not rules_open
+                if passport_is_opened and passport_scale > 0.9:
+                    close_button_rect = pygame.Rect(passport_rect.right -44, passport_rect.y + 10, 34, 34)
+                    title_bar_rect = pygame.Rect(passport_rect.x, passport_rect.y, passport_width - 50, 54)
+                    if close_button_rect.collidepoint(event.pos):
+                        passport_is_opened = False
+                        dragging_passport = False
+                    elif title_bar_rect.collidepoint(event.pos):
+                        dragging_passport = True
+                        drag_offset = (passport_rect - event.pos[0], passport_rect.y - event.pos[1])
+                    elif mini_passport_rect.collidepoint(event.pos):
+                        passport_is_opened = False
+                elif mini_passport_rect.collidepoint(event.pos):
+                    passport_is_opened = True
+            if event.type == pygame.MOUSEBUTTONUP and event.button ==1:
+                dragging_passport = False
+            if event.type == pygame.MOUSEMOTION and dragging_passport:
+                passport_rect.x = event.pos[0] + drag_offset[0]
+                passport_rect.y = event.pos[1] + drag_offset[1]
+                passport_rect.clamp_ip(pygame.Rect(0,0,1280,720))
+            if approve_button.clicking(event) or deny_button.clicking(event):
+                test_alien = Alien()
+                passport_is_opened = False
+                dragging_passport = False
+
                 if mini_passport_rect.collidepoint(event.pos):
                     passport_is_opened = not passport_is_opened
             if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
