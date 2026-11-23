@@ -1,4 +1,5 @@
 import pygame
+from rules import generate_rules
 class PixelButton:
     def __init__(s,x,y,width,height,text,font,base_colour,hover_colour,border_colour):
         s.rect = pygame.Rect(x,y,width,height)
@@ -8,9 +9,6 @@ class PixelButton:
         s.hover_colour = hover_colour
         s.border_colour = border_colour
         s.offset = 0
-
-
-
 
     def draw(s, screen, mouse_pos, pressed_true):
         hovered_true = s.rect.collidepoint(mouse_pos)
@@ -99,6 +97,8 @@ if __name__ == "__main__":
 
     alien_img = pygame.image.load("assets/sprites/alien_1.png").convert_alpha()
     alien_img = pygame.transform.scale(alien_img, (192,192))
+
+    raw_passport = pygame.image.load("assets")  
 
     rules_icon = pygame.image.load("assets/sprites/rules.png").convert_alpha()
     rules_icon = pygame.transform.scale(rules_icon,(192,192))
