@@ -149,8 +149,20 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                test_alien = Alien()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    test_alien = Alien()
+                    passport_is_opened = False
+                    dragging_passport = False
+                if event.key == pygame.K_r:
+                    rules_open = not rules_open
+                if event.key == pygame.K_ESCAPE:
+                    passport_is_opened = False
+                    dragging_passport = False
+                if event.key == pygame.K_p:
+                    passport_is_opened = not passport_is_opened
+                    dragging_passport = False
+             
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if rules_icon_rect.collidepoint(event.pos):
                     rules_open = not rules_open
@@ -195,27 +207,46 @@ if __name__ == "__main__":
         pass_label = small_font.render("PASS", True, (240,200,50))
         screen.blit(pass_label, pass_label.get_rect(center =(mini_rect.centerx, mini_rect.bottom - 20)))
         #PASSPORT
-        screen.blit(passport_shadow_image, (passport_rect.x + 10, passport_rect.y + 10))
-        screen.blit(passport_image, passport_rect)
+        passport_width, passport_height = passport_image.get_size()
+        passport_rect = pygame.Rect(60,110,passport_width, passport_height)
 
-        title_text = font.render("GALACTIC PASSPORT", True, (240,210,60))
-        screen.blit(title_text, (passport_rect.x + 150, passport_rect.y + 10))
+        try:
+            raw_cover = pygame.image.load("assets/sprites/passport_cover.png").convert_alpha()
+            cover_image = pygame.transform.scale_by(raw_cover, 3)
+        except FileNotFoundError:
+            cover_image = pygame.Surface((108,144), pygame.SRCALPHA)
+            pixel_8_bit_border(cover_image,pygame.Rect(0,0,108,144),(32,45,75), (20,28,48), notch = 4, border = 4)
+            pygame.draw.rect(cover_image,(240,200,50), (36,42,36,36), 4)
 
-        mini_photo = pygame.transform.scale(alien_img,(96,96))
-        screen.blit(mini_photo, (passport_rect.x +20, passport_rect.y + 70))
+        mini_passport_rect = cover_image.get_rect(topleft=(140,515))
 
-        screen.blit(small_font.render("CLASS: TRANSIT", True, (30,34,42)),(passport_rect.x + 270, passport_rect.y + 66))
-        screen.blit(small_font.render("DOCUMENT ID: #44135", True, (30,34,42)), (passport_rect.x + 270, passport_rect.y + 86))
-        screen.blit(small_font.render("SECTOR: OUTER GALAXY", True, (30,34,42)), (passport_rect.x + 270, passport_rect.y + 106))
+        #settingssss
+        passport_is_opened = False
+        passport_scale = 0
+        dragging_passport = False
+        drag_offset = (0,0)
+        if passport_is_opened:
+            screen.blit(passport_shadow_image, (passport_rect.x + 10, passport_rect.y + 10))
+            screen.blit(passport_image, passport_rect)
 
-        screen.blit(field_font.render(f"NAME:{test_alien.passport.name}", True, "black",), (passport_rect.x + 170, passport_rect.y + 145))
-        screen.blit(field_font.render(f"PLANET:{test_alien.passport.planet}", True,"black"),(passport_rect.x + 170, passport_rect.y + 175))
-        screen.blit(field_font.render(f"EXPIRES: {test_alien.passport.expiration_date}",True,"black"),(passport_rect.x + 170,passport_rect.y+205))
+            title_text = font.render("GALACTIC PASSPORT", True, (240,210,60))
+            screen.blit(title_text, (passport_rect.x + 150, passport_rect.y + 10))
 
-        bars_x = passport_rect.x + 300
-        for width in [4,2,2,2,2,4,3,3,4,5,2,2,3,4,4,2,2,2,3,3,3,4,4]:
-            pygame.draw.rect(screen,"black",(bars_x,passport_rect.y+270, width,38))
-            bars_x += width + 4
+            mini_photo = pygame.transform.scale(alien_img,(96,96))
+            screen.blit(mini_photo, (passport_rect.x +20, passport_rect.y + 70))
+
+            screen.blit(small_font.render("CLASS: TRANSIT", True, (30,34,42)),(passport_rect.x + 270, passport_rect.y + 66))
+            screen.blit(small_font.render("DOCUMENT ID: #44135", True, (30,34,42)), (passport_rect.x + 270, passport_rect.y + 86))
+            screen.blit(small_font.render("SECTOR: OUTER GALAXY", True, (30,34,42)), (passport_rect.x + 270, passport_rect.y + 106))
+
+            screen.blit(field_font.render(f"NAME:{test_alien.passport.name}", True, "black",), (passport_rect.x + 170, passport_rect.y + 145))
+            screen.blit(field_font.render(f"PLANET:{test_alien.passport.planet}", True,"black"),(passport_rect.x + 170, passport_rect.y + 175))
+            screen.blit(field_font.render(f"EXPIRES: {test_alien.passport.expiration_date}",True,"black"),(passport_rect.x + 170,passport_rect.y+205))
+
+            bars_x = passport_rect.x + 300
+            for width in [4,2,2,2,2,4,3,3,4,5,2,2,3,4,4,2,2,2,3,3,3,4,4]:
+                pygame.draw.rect(screen,"black",(bars_x,passport_rect.y+270, width,38))
+                bars_x += width + 4
 
         #BUTTONS
         
