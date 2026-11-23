@@ -9,6 +9,9 @@ class PixelButton:
         s.border_colour = border_colour
         s.offset = 0
 
+
+
+
     def draw(s, screen, mouse_pos, pressed_true):
         hovered_true = s.rect.collidepoint(mouse_pos)
         clicked_true = hovered_true and pressed_true[0]
@@ -22,7 +25,7 @@ class PixelButton:
         s.offset += (offset_value - s.offset) * 0.2
 
         #fixed shadow(8-bit style x)
-        shadow_rect = pygame.Rect(s.rect.x + 10,s.rect.y+10,s.rect.width,s.rect.height)
+        shadow_rect = pygame.Rect(s.rect.x + 10,s.rect.y + 5,s.rect.width,s.rect.height)
         pygame.draw.rect(screen, (15,17,24), shadow_rect)
 
         #the button duh
@@ -52,7 +55,16 @@ class PixelButton:
             event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and s.rect.collidepoint(event.pos)
             )
 
+def pixel_8_bit_border(surface, rect, inside_colour, border_colour, notch = 6, border = 6):
+        pygame.draw.rect(surface, border_colour, (rect.x,rect.y + notch, rect.width, rect.height - notch *2 ))
+        pygame.draw.rect(surface,border_colour,(rect.x+notch,rect.y, rect.width - notch*2, rect.height))
 
+        inside_x, inside_y = rect.x + border, rect.y + border
+        inside_width, inside_height = rect.width - border*2, rect.height - border*2
+        inside_notch = max(2, notch-2)
+
+        pygame.draw.rect(surface,inside_colour,(inside_x,inside_y + inside_notch, inside_width, inside_height - inside_notch*2))
+        pygame.draw.rect(surface,inside_colour,(inside_x + inside_notch, inside_y, inside_width - inside_notch *2,inside_height))    
 
 if __name__ == "__main__":
     pygame.init()
@@ -64,11 +76,11 @@ if __name__ == "__main__":
     test_alien = Alien()
     test_rule = "Check the passsport expiration date and species colour"
     #passport
-    passport_shadow = pygame.Rect(95,67,390,510)
+    passport_shadow = pygame.Rect(100,72,390,510)
     passport_rect_border = pygame.Rect(75,50,400,520)
     passport_rect = pygame.Rect(80,55,390,510)
     #approve_button
-    approve_button_shadow = pygame.Rect(284,617,270,90)
+    approve_button_shadow = pygame.Rect(294,627,270,90)
     approve_button_border = pygame.Rect(265,600,280,100)
     approve_button = pygame.Rect(270,605,270,90)
     #deny_button
@@ -132,16 +144,15 @@ if __name__ == "__main__":
             if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                 rules_open = not rules_open
             
-        if approve_button.clicking(event) or deny_button.clicking(event):
-            test_alien = Alien()
+            if approve_button.clicking(event) or deny_button.clicking(event):
+                test_alien = Alien()
         pygame.display.set_caption(f"MOUSE: {pygame.mouse.get_pos()}")
         
 
-        screen.fill((173,216,230))
+        screen.fill((50,31,46))
         #PASSPORT
-        pygame.draw.rect(screen,(15,17,24),passport_shadow,0,17)
-        pygame.draw.rect(screen,"white",passport_rect,0,17)
-        pygame.draw.rect(screen,"grey",passport_rect_border,7,17)
+        pixel_8_bit_border(screen,passport_shadow,"black","black", notch = 8, border = 6)
+        pixel_8_bit_border(screen,passport_rect,"white","grey",notch = 6,border = 6)
         pygame.draw.line(screen,"grey",(120,110),(415,110),3)
         passport_text = font.render("GALACTIC PASSPORT",True, "black")
         screen.blit(passport_text,(passport_rect.x+50,passport_rect.y+20))
