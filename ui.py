@@ -1,4 +1,58 @@
 import pygame
+class PixelButton:
+    def __init__(s,x,y,width,height,text,font,base_colour,hover_colour,border_colour):
+        s.rect = pygame.Rect(x,y,width,height)
+        s.text = text
+        s.font = font
+        s.base_colour = base_colour
+        s.hover_colour = hover_colour
+        s.border_colour = border_colour
+        s.offset = 0
+
+    def draw(s, screen, mouse_pos, pressed_true):
+        hovered_true = s.rect.collidepoint(mouse_pos)
+        clicked_true = hovered_true and pressed_true[0]
+        #click animation
+        if clicked_true:
+            offset_value = 6
+        elif hovered_true:
+            offset_value = 2
+        else:
+            offset_value = 0
+        s.offset += (offset_value - s.offset) * 0.2
+
+        #fixed shadow(8-bit style x)
+        shadow_rect = pygame.Rect(s.rect.x + 10,s.rect.y+10,s.rect.width,s.rect.height)
+        pygame.draw.rect(screen, (15,17,24), shadow_rect)
+
+        #the button duh
+        button_surface = pygame.Surface((s.rect.width,s.rect.height))
+        if hovered_true:
+            direct_colour = s.hover_colour
+        else:
+            direct_colour = s.base_colour
+        button_surface.fill(direct_colour)
+
+        #border colour
+        pygame.draw.rect(button_surface, s.border_colour, (0,0,s.rect.width,s.rect.height),7)
+        pygame.draw.line(button_surface,(240,240,240), (7,7), (s.rect.width-8,7),3)
+        pygame.draw.line(button_surface,(240,240,240),(7,7),(7,s.rect.height-8),3)
+
+        #centered textt
+        text = s.font.render(s.text, True, "black")
+        text_rect = text.get_rect(center=(s.rect.width//2,s.rect.height//2))
+        button_surface.blit(text, text_rect)
+
+        #drawing
+        offset = int(s.offset)
+        screen.blit(button_surface, (s.rect.x + offset, s.rect.y + offset))
+
+    def clicking(s,event):
+        return(
+            event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and s.rect.collidepoint(event.pos)
+            )
+
+
 
 if __name__ == "__main__":
     pygame.init()
@@ -28,6 +82,7 @@ if __name__ == "__main__":
     #fonts
     font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf",28)
     big_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf",40)
+    rule_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf",24)
 
     alien_img = pygame.image.load("assets/sprites/alien_1.png").convert_alpha()
     alien_img = pygame.transform.scale(alien_img, (192,192))
@@ -38,6 +93,30 @@ if __name__ == "__main__":
     rules_open = True
     rules_scale = 1.0
     screen.blit(rules_icon, rules_icon_rect)
+
+    def not_unbound_text(surface, text, font,colour,rect,start_y):
+        words = text.split(" ")
+        line = ""
+        y = start_y
+        max_width = rect.width - 40
+
+        for word in words:
+            test_line = line + word + " "
+            if font.size(test_line)[0] <= max_width:
+                line = test_line
+            else:
+                rendered = font.render(line,True,colour)
+                surface.blit(rendered, (rect.x + 20, y))
+                line = word + " "
+                y += font.get_linesize() + 4
+        if line:
+            rendered = font.render(line, True, colour)
+            surface.blit(rendered,(rect.x + 20, y))
+    current_rule = generate_rules()["RULE"]
+    
+    approve_button = PixelButton(300,605,270,90,"APPROVE", big_font, (0,200,0),(50,240,100), (0,100,32))
+    deny_button = PixelButton(700,605,280,90, "DENY", big_font, (200,0,0), (240,50,100), (100,0,32))
+
 
     running = True
     while running:
@@ -53,7 +132,8 @@ if __name__ == "__main__":
             if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                 rules_open = not rules_open
             
-
+        if approve_button.clicking(event) or deny_button.clicking(event):
+            test_alien = Alien()
         pygame.display.set_caption(f"MOUSE: {pygame.mouse.get_pos()}")
         
 
@@ -66,31 +146,15 @@ if __name__ == "__main__":
         passport_text = font.render("GALACTIC PASSPORT",True, "black")
         screen.blit(passport_text,(passport_rect.x+50,passport_rect.y+20))
 
-        #APPROVE BUTTON
+        #BUTTONS
         mouse_pos = pygame.mouse.get_pos()
-        hover_colour_approve_button = (50,240,100) if approve_button.collidepoint(mouse_pos) else (0,200,0)
-
-        pygame.draw.rect(screen,(15,17,24),approve_button_shadow,0,17)
-        pygame.draw.rect(screen,(0,128,0),approve_button,0,20)
-        pygame.draw.rect(screen,(0,100,32),approve_button_border,7,20)
-        pygame.draw.rect(screen,hover_colour_approve_button, approve_button,0,20)
-
-        approve_button_text = big_font.render("APPROVE", True, "black")
-        approve_button_text_center = approve_button_text.get_rect(center = approve_button.center)
-        screen.blit(approve_button_text,approve_button_text_center)
+        mouse_pressed_true = pygame.mouse.get_pressed()
+        approve_button.draw(screen,mouse_pos, mouse_pressed_true)
+        deny_button.draw(screen, mouse_pos, mouse_pressed_true)
         
-        #DENY BUTTON
-        mouse_pos_deny_button = pygame.mouse.get_pos()
-        hover_colour_deny_button = (240,50,100) if deny_button.collidepoint(mouse_pos_deny_button) else (200,0,0)
-
-        pygame.draw.rect(screen,(15,17,24),deny_button_shadow,0,17)
-        pygame.draw.rect(screen,(240,50,100),deny_button,0,20)
-        pygame.draw.rect(screen,(100,0,32),deny_button_border,7,20)
-        pygame.draw.rect(screen,hover_colour_deny_button,deny_button,0,20)
-
-        deny_button_text = big_font.render("DENY",True,"black")
-        deny_button_text_center = deny_button_text.get_rect(center= deny_button.center)
-        screen.blit(deny_button_text,deny_button_text_center)
+        
+        
+        
 
         #DAILY RULES
         
@@ -103,28 +167,39 @@ if __name__ == "__main__":
         rules_scale += (target_scale - rules_scale) * 20 * dt
 
 
-        
+
         if rules_scale > 0.05:
             WIDTH, HEIGHT = 290 , 480
-            rules_surface = pygame.Surface((WIDTH + 15,HEIGHT + 15),pygame.SRCALPHA)
+            TRANSPARENT_BORDER = 14
+            rules_surface = pygame.Surface((WIDTH + 15,HEIGHT + 15 + TRANSPARENT_BORDER),pygame.SRCALPHA)
 
-            pygame.draw.rect(rules_surface, (15,17,24),(15,15,WIDTH,HEIGHT),0,17)
-            pygame.draw.rect(rules_surface, (0,190,230),(0,0,WIDTH,HEIGHT),0,17)
-            pygame.draw.rect(rules_surface, (10,75,220),(0,0,WIDTH+3,HEIGHT+3),7,20)
+            pygame.draw.rect(rules_surface, (15,17,24),(15,15+TRANSPARENT_BORDER,WIDTH,HEIGHT),0,17)
+            pygame.draw.rect(rules_surface, (0,190,230),(0,TRANSPARENT_BORDER,WIDTH,HEIGHT),0,17)
+            pygame.draw.rect(rules_surface, (10,75,220),(0,TRANSPARENT_BORDER,WIDTH+3,HEIGHT+3),7,20)
             
 
             rules_title = font.render("DAILY RULES", True, "black")
-            rules_title_rect = rules_title.get_rect(centerx = WIDTH//2, y = 20)
+            rules_title_rect = rules_title.get_rect(centerx = WIDTH//2, y = 20+TRANSPARENT_BORDER)
             rules_surface.blit(rules_title, rules_title_rect)
-            pygame.draw.line(rules_surface, (12,17,24), (25,60),(WIDTH - 25, 60),3)
-            pygame.draw.line(rules_surface, (200,200,0),(100,0),(WIDTH - 100,0),12)
+            pygame.draw.line(rules_surface, (12,17,24), (25,55+TRANSPARENT_BORDER),(WIDTH - 25, 55+ TRANSPARENT_BORDER),3)
+            pygame.draw.line(rules_surface, (200,200,0),(100,3+TRANSPARENT_BORDER),(WIDTH - 100,3+TRANSPARENT_BORDER),7)
+            pygame.draw.line(rules_surface, (220,220,0),(100,TRANSPARENT_BORDER),(WIDTH-100,TRANSPARENT_BORDER),12)
+            pygame.draw.line(rules_surface, (220,220,0),(100,TRANSPARENT_BORDER),(WIDTH-100,TRANSPARENT_BORDER),12)
             
-
+            not_unbound_text(
+                rules_surface,
+                f"RULE 1: {current_rule}",
+                rule_font,
+                "black",
+                pygame.Rect(0,0,WIDTH,HEIGHT),
+                75,
+            )
+            
             NEW_WIDTH = max(1,int(WIDTH * rules_scale))
             NEW_HEIGHT = max(1,int(HEIGHT * rules_scale))
             scaled_panel = pygame.transform.scale(rules_surface, (NEW_WIDTH,NEW_HEIGHT))
 
-            scaled_rect = scaled_panel.get_rect(topright=(1250,40))
+            scaled_rect = scaled_panel.get_rect(topright=(1250,30))
             screen.blit(scaled_panel, scaled_rect)
 
         #ALIEN IMAGE

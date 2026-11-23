@@ -10,9 +10,10 @@ clock = pygame.time.Clock()
 running = True
 dt = 0
 
+current_alien = Alien()
+current_rule = generate_rules()
+
 while running:
-    current_alien = Alien()
-    current_rule = generate_rules()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False

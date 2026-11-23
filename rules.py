@@ -6,9 +6,10 @@ RULE = [
     "Check the passport expiration date",
     "Check the number of eyes",
     "Check the colour of the alien",
-    "Check the number of members",
+    "Check the number of limbs",
     "Check all passport and species details",
 ]
+
 
 def generate_rules():
     return{
@@ -29,6 +30,7 @@ def check_decision(alien,active_rule,player_approval):
         is_check = (
             not alien.passport.is_expired()
             and alien.eyes == expect["eyes"]
-            and alien.color == expect["colour"]
+            and alien.colour == expect["colour"]
         )
     return player_approval == is_check
+
