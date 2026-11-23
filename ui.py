@@ -95,6 +95,7 @@ if __name__ == "__main__":
     font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf",28)
     big_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf",40)
     rule_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf",24)
+    small_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf",18)
 
     alien_img = pygame.image.load("assets/sprites/alien_1.png").convert_alpha()
     alien_img = pygame.transform.scale(alien_img, (192,192))
@@ -155,27 +156,45 @@ if __name__ == "__main__":
         pixel_8_bit_border(screen,passport_shadow,"black","black", notch = 8, border = 6)
         pixel_8_bit_border(screen,passport_rect,"white","grey",notch = 6,border = 6)
 
-        passport_text - font.render("GALACTIC PASSPORT", True, "black")
+        passport_text = font.render("GALACTIC PASSPORT", True, "black")
         screen.blit(passport_text, (passport_rect.x + 48, passport_rect.y + 18))
         pygame.draw.line(screen,"grey",(passport_rect.x + 25,passport_rect.y + 56),(passport_rect.right - 25, passport_rect.y + 56), 3)
 
         photo_rect = pygame.Rect(passport_rect.x + 25, passport_rect.y + 70, 120,125)
         pygame.draw.rect(screen,(220,225,230),photo_rect)
-        pygame.draw.rect(screen. "grey", photo_rect,4)
+        pygame.draw.rect(screen, "grey", photo_rect,4)
         mini_photo = pygame.transform.scale(alien_img,(100,100))
         screen.blit(mini_photo, (photo_rect.x + 0, photo_rect.y + 12))
 
-        screen.blit(rule_font.render("CLASS: TRANSIT", True, (90,95,105)),(passport_rect.x + 160, passport_rect.y + 75))
-        screen.blit(rule_font.render("DOCUMENT ID: #42351", True, (90,95,105)),(passport_rect.x + 160, passport_rect.y +100))
-        screen.blit(rule_font.render("SECTOR: OUTER GALAXY", True, (90,95,105)),(passport_rect.x+160, passport_rect.y+150))
+        screen.blit(rule_font.render("CLASS: TRANSIT", True, (90,95,105)),(passport_rect.x + 150, passport_rect.y + 75))
+        screen.blit(rule_font.render("DOCUMENT ID: #42351", True, (90,95,105)),(passport_rect.x + 150, passport_rect.y +110))
+        screen.blit(rule_font.render("SECTOR: OUTER GALAXY", True, (90,95,105)),(passport_rect.x+150, passport_rect.y+145))
 
         fields = [
             ("FULL NAME", test_alien.passport.name, passport_rect.y + 200),
-            ("ORIGIN PLANET", test_alien.passport.planet, passport_rect.y + 270)
-            ("EXPIRATION YEAR", str(test_alien.passport.expiration_date), passport_rect.y + 340)
+            ("ORIGIN PLANET", test_alien.passport.planet, passport_rect.y + 270),
+            ("EXPIRATION YEAR", str(test_alien.passport.expiration_date), passport_rect.y + 340),
         ]
 
-        
+        for label,value,field_y in fields:
+            label_surface = rule_font.render(label,True,(110,115,120))
+            value_surface = rule_font.render(value,True,"black")
+            screen.blit(label_surface,(passport_rect.x + 25, field_y))
+            pygame.draw.line(screen,(190,195,200),(passport_rect.x + 25, field_y + 32), (passport_rect.right - 25, field_y + 32),2)
+
+        pixel_8_bit_seal_rect = pygame.Rect(passport_rect.x + 20, passport_rect.y + 400, 72, 72)
+        pygame.draw.rect(screen, (70,115,190), pixel_8_bit_seal_rect,4)
+        pygame.draw.rect(screen, (70,115,190), pixel_8_bit_seal_rect.inflate(-15,-15),2)
+        pixel_8_bit_seal_text = rule_font.render("SEAL", True, (70,115,190))
+        screen.blit(pixel_8_bit_seal_text, pixel_8_bit_seal_text.get_rect(center = pixel_8_bit_seal_rect.center))
+
+        bars_x = passport_rect.x + 150
+        bar_widths = [4,2,3,4,2,2,2,3,3,2,4,4,4,4,2,4,3,2,4,4,6,2,4,3,2,4]
+        for width in bar_widths:
+            pygame.draw.rect(screen, "black",(bars_x, passport_rect.y + 410,width,40))
+            bars_x += width+4
+        blah_text = rule_font.render("P<SEAL<<PASSPORT<<", True, (110,115,125))
+        screen.blit(blah_text, (passport_rect.x + 120, passport_rect.y + 450))
 
         #BUTTONS
         mouse_pos = pygame.mouse.get_pos()
