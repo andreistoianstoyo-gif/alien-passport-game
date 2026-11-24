@@ -26,11 +26,14 @@ def check_decision(alien,active_rule,player_approval):
         is_check = (alien.eyes == expect["eyes"])
     elif active_rule == "Check the colour of the alien":
         is_check = (alien.colour == expect["colour"])
+    elif active_rule == "Check the colour of the limbs":
+        is_check = (alien.limbs == expect["limbs"])
     else:
         is_check = (
             not alien.passport.is_expired()
             and alien.eyes == expect["eyes"]
             and alien.colour == expect["colour"]
+            and alien.limbs == expect["limbs"]
         )
     return player_approval == is_check
 

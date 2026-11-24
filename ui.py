@@ -1,5 +1,5 @@
 import pygame
-from rules import generate_rules
+
 class PixelButton:
     def __init__(s,x,y,width,height,text,font,base_colour,hover_colour,border_colour):
         s.rect = pygame.Rect(x,y,width,height)
@@ -44,7 +44,6 @@ class PixelButton:
         text_rect = text.get_rect(center=(s.rect.width//2,s.rect.height//2))
         button_surface.blit(text, text_rect)
 
-        #drawing
         offset = int(s.offset)
         screen.blit(button_surface, (s.rect.x + offset, s.rect.y + offset))
 
@@ -65,6 +64,25 @@ def pixel_8_bit_border(surface, rect, inside_colour, border_colour, notch = 6, b
 
         pygame.draw.rect(surface,inside_colour,(inside_x,inside_y + inside_notch, inside_width, inside_height - inside_notch*2))
         pygame.draw.rect(surface,inside_colour,(inside_x + inside_notch, inside_y, inside_width - inside_notch *2,inside_height))    
+
+def not_unbound_text(surface, text, font,colour,rect,start_y):
+        words = text.split(" ")
+        line = ""
+        y = start_y
+        max_width = rect.width - 40
+
+        for word in words:
+            test_line = line + word + " "
+            if font.size(test_line)[0] <= max_width:
+                line = test_line
+            else:
+                rendered = font.render(line,True,colour)
+                surface.blit(rendered, (rect.x + 20, y))
+                line = word + " "
+                y += font.get_linesize() + 4
+        if line:
+            rendered = font.render(line, True, colour)
+            surface.blit(rendered,(rect.x + 20, y))
 
 if __name__ == "__main__":
     pygame.init()
@@ -119,24 +137,7 @@ if __name__ == "__main__":
     rules_scale = 0.0
     screen.blit(rules_icon, rules_icon_rect)
 
-    def not_unbound_text(surface, text, font,colour,rect,start_y):
-        words = text.split(" ")
-        line = ""
-        y = start_y
-        max_width = rect.width - 40
-
-        for word in words:
-            test_line = line + word + " "
-            if font.size(test_line)[0] <= max_width:
-                line = test_line
-            else:
-                rendered = font.render(line,True,colour)
-                surface.blit(rendered, (rect.x + 20, y))
-                line = word + " "
-                y += font.get_linesize() + 4
-        if line:
-            rendered = font.render(line, True, colour)
-            surface.blit(rendered,(rect.x + 20, y))
+    
     current_rule = generate_rules()["RULE"]
     
     approve_button = PixelButton(300,605,270,90,"APPROVE", big_font, (0,200,0),(50,240,100), (0,100,32))
