@@ -7,9 +7,10 @@ from ui import PixelButton, pixel_8_bit_border, not_unbound_text
 
 pygame.init()
 LENGTH, HEIGHT = 1280,720
-screen = pygame.display.set_mode((LENGTH,HEIGHT), pygame.SCALED)
+screen = pygame.display.set_mode((LENGTH,HEIGHT), pygame.RESIZABLE | pygame.SCALED)
 pygame.display.set_caption("RuAlien?")
 clock = pygame.time.Clock()
+is_fullscreen = False
 
 #the fonts duh
 font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf",28)
@@ -138,8 +139,11 @@ while running:
         #settings eveniments
         elif game_state == "SETTINGS":
             if fullscreen_button.clicking(event):
-                pygame.display.toggle_fullscreen()
                 is_fullscreen = not is_fullscreen
+                if is_fullscreen:
+                    screen = pygame.display.set_mode((LENGTH,HEIGHT), pygame.FULLSCREEN | pygame.SCALED)
+                else:
+                    screen = pygame.display.set_mode((LENGTH, HEIGHT), pygame.RESIZABLE | pygame.SCALED)
                 fullscreen_button.text = f"FULLSCREEN : {'ON'if is_fullscreen else 'OFF'}"
             elif back_button.clicking(event) or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 game_state = "LOBBY"
@@ -259,7 +263,7 @@ while running:
         quit_button.draw(screen,mouse_pos,mouse_pressed_true)
 
     elif game_state == "SETTINGS":
-        settings_card = pygame.Rect(320,90,540,540)
+        settings_card = pygame.Rect(320,90,640,540)
         pixel_8_bit_border(screen, settings_card.move(10,10),(15,18,26), (15,18,26), notch = 8, border = 8)
         pixel_8_bit_border(screen,settings_card,(34,40,54), (240,200,50),notch = 8,border = 8)
 
@@ -415,10 +419,22 @@ while running:
             scaled_passport = pygame.transform.scale(passport_surface, (scaled_width,scaled_height))
             screen.blit(scaled_passport, (int(variable_x), int(variable_y)))
 
-        elif game_state == "GAME_OVER":
-            game_over_card = pygame.Rect(310,130,660,460)
-            pixel_8_bit_border(screen, game_over_card.move(10,10), (15,18,26), (15,18,26), notch = 8, border = 8)
-            pixel_8_bit_border(screen, game_over_card, (34,40,54), (220,45,65), notch = 8, border = 8)
+    elif game_state == "GAME_OVER":
+        game_over_card = pygame.Rect(310,130,660,460)
+        pixel_8_bit_border(screen, game_over_card.move(10,10), (15,18,26), (15,18,26), notch = 8, border = 8)
+        pixel_8_bit_border(screen, game_over_card, (34,40,54), (220,45,65), notch = 8, border = 8)
+
+        game_over_title = big_font.render("GAME OVER", True,(200,205,215))
+        screen.blit(game_over_title, game_over_title.get_rect(centerx = 640, y = 185))
+
+        reason_surface = rule_font.render("3 STRIKES REACHED - you suck, everybody died bcus of you)", True,(200,205,215))
+        screen.blit(reason_surface, reason_surface.get_rect(centerx = 640, y = 265))
+
+        final_score_surface = big_font.render(f"FINAL SCORE: {score}", True, (240,210,60))
+        screen.blit(final_score_surface, final_score_surface.get_rect(centerx = 640, y = 335))
+
+        retry_button.draw(screen,mouse_pos,mouse_pressed_true)
+        lobby_button.draw(screen,mouse_pos,mouse_pressed_true)
 
     pygame.display.flip()
 
