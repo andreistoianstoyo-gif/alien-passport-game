@@ -143,33 +143,23 @@ if __name__ == "__main__":
     deny_button = PixelButton(700,605,280,90, "DENY", big_font, (200,0,0), (240,50,100), (100,0,32))
     
      #settingssss
+    passport_width, passport_height = passport_image.get_size()
+    passport_rect = pygame.Rect(60,110,passport_width, passport_height)
+    try:
+        raw_cover = pygame.image.load("assets/sprites/passport_cover.png").convert_alpha()
+        cover_image = pygame.transform.scale_by(raw_cover, 3)
+    except FileNotFoundError:
+        cover_image = pygame.Surface((108,144), pygame.SRCALPHA)
+        pixel_8_bit_border(cover_image,pygame.Rect(0,0,108,144),(32,45,75), (20,28,48), notch = 4, border = 4)
+        pygame.draw.rect(cover_image,(240,200,50), (36,42,36,36), 4)
+             
+    mini_passport_rect = cover_image.get_rect(topleft=(140,515))
+     
     passport_is_opened = False
     passport_scale = 0
     dragging_passport = False
     drag_offset = (0,0)
-    if passport_is_opened:
-        screen.blit(passport_shadow_image, (passport_rect.x + 10, passport_rect.y + 10))
-        screen.blit(passport_image, passport_rect)
-    
-        title_text = font.render("GALACTIC PASSPORT", True, (240,210,60))
-        screen.blit(title_text, (passport_rect.x + 150, passport_rect.y + 10))
-    
-        mini_photo = pygame.transform.scale(alien_img,(96,96))
-        screen.blit(mini_photo, (passport_rect.x +20, passport_rect.y + 70))
-    
-        screen.blit(small_font.render("CLASS: TRANSIT", True, (30,34,42)),(passport_rect.x + 270, passport_rect.y + 66))
-        screen.blit(small_font.render("DOCUMENT ID: #44135", True, (30,34,42)), (passport_rect.x + 270, passport_rect.y + 86))
-        screen.blit(small_font.render("SECTOR: OUTER GALAXY", True, (30,34,42)), (passport_rect.x + 270, passport_rect.y + 106))
-    
-        screen.blit(field_font.render(f"NAME:{test_alien.passport.name}", True, "black",), (passport_rect.x + 170, passport_rect.y + 145))
-        screen.blit(field_font.render(f"PLANET:{test_alien.passport.planet}", True,"black"),(passport_rect.x + 170, passport_rect.y + 175))
-        screen.blit(field_font.render(f"EXPIRES: {test_alien.passport.expiration_date}",True,"black"),(passport_rect.x + 170,passport_rect.y+205))
-    
-        bars_x = passport_rect.x + 300
-        for width in [4,2,2,2,2,4,3,3,4,5,2,2,3,4,4,2,2,2,3,3,3,4,4]:
-            pygame.draw.rect(screen,"black",(bars_x,passport_rect.y+270, width,38))
-            bars_x += width + 4
-
+        
     running = True
     while running:
         dt = clock.tick(60) / 1000
@@ -248,18 +238,9 @@ if __name__ == "__main__":
 
         
         #PASSPORT
-        passport_width, passport_height = passport_image.get_size()
-        passport_rect = pygame.Rect(60,110,passport_width, passport_height)
+        
 
-        try:
-            raw_cover = pygame.image.load("assets/sprites/passport_cover.png").convert_alpha()
-            cover_image = pygame.transform.scale_by(raw_cover, 3)
-        except FileNotFoundError:
-            cover_image = pygame.Surface((108,144), pygame.SRCALPHA)
-            pixel_8_bit_border(cover_image,pygame.Rect(0,0,108,144),(32,45,75), (20,28,48), notch = 4, border = 4)
-            pygame.draw.rect(cover_image,(240,200,50), (36,42,36,36), 4)
-
-        mini_passport_rect = cover_image.get_rect(topleft=(140,515))
+        
 
     
 
@@ -336,9 +317,9 @@ if __name__ == "__main__":
             passport_surface.blit(small_font.render("DOCUMENT ID: #13565", True, (30,34,42)), (270, 86))
             passport_surface.blit(small_font.render("SECTOR: OUTER",True, (30,34,42)), (270,106))
 
-            passport_surface.blit(field_font.render(f"NAME: {test_alien.passport.name}", True, "black"),(150,150))
-            passport_surface.blit(field_font.render(f"PLANET: {test_alien.passport.planet}", True, "black"),(150,150))
-            passport_surface.blit(field_font.render(f"EXPIRES: {test_alien.passport.expiration_date}", True, "black"), (150,150))
+            passport_surface.blit(field_font.render(f"NAME: {test_alien.passport.name}", True, "black"),(170,145))
+            passport_surface.blit(field_font.render(f"PLANET: {test_alien.passport.planet}", True, "black"),(170,175))
+            passport_surface.blit(field_font.render(f"EXPIRES: {test_alien.passport.expiration_date}", True, "black"), (170,205))
 
             bars_x = 260
             for width in [4,2,2,2,3,2,2,4,5,3,5,2,2,2,3,4,4,4,4,3,2,4,5,3]:
@@ -349,12 +330,17 @@ if __name__ == "__main__":
             global_close_button = x_button_close_rect.move(passport_rect.x, passport_rect.y)
 
             x_button_background = (240,60,80) if global_close_button.collidepoint(mouse_pos) else (185,30,40)
-            pygame.draw.rect(passport_surface,x_button_background,x_button_close_rect,2)
+            pygame.draw.rect(passport_surface,x_button_background,x_button_close_rect)
             pygame.draw.rect(passport_surface,(255,255,255),x_button_close_rect,2)
             x_button_close_text = small_font.render("X", True, "white")
             passport_surface.blit(x_button_close_text,x_button_close_text.get_rect(center = x_button_close_rect.center))
 
-            
-        
+            variable_x = mini_passport_rect.x + (passport_rect.x - mini_passport_rect.x) * passport_scale
+            variable_y = mini_passport_rect.y + (passport_rect.y - mini_passport_rect.y) * passport_scale
+            scaled_width = max(1, int((passport_width + 12)*passport_scale))
+            scaled_height = max(1, int((passport_height + 12)*passport_scale))
+            scaled_passport = pygame.transform.scale(passport_surface, (scaled_width,scaled_height))
+            screen.blit(scaled_passport,(int(variable_x),int(variable_y)))
+
         pygame.display.flip()
     pygame.quit()
