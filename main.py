@@ -88,7 +88,7 @@ while running:
                 rules_is_opened = False
                 dragging_passport = False
 
-            if event.key == pygame.K_space:
+            if event.key == pygame.K_SPACE:
                 current_alien = Alien()
                 current_rule = generate_rules()["RULE"]
                 passport_is_opened = False
@@ -96,8 +96,7 @@ while running:
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
 
-            if rules_icon_rect.collidepoint(event.pos):
-                rules_is_opened = not rules_is_opened
+            
 
             if passport_is_opened and passport_scale > 0.9:
                 close_button_rect = pygame.Rect(passport_rect.right - 45, passport_rect.y + 10,34,34)
@@ -109,6 +108,8 @@ while running:
                 elif title_bar_rect.collidepoint(event.pos):
                     dragging_passport = True
                     drag_offset = (passport_rect.x - event.pos[0],passport_rect.y - event.pos[1])
+                elif rules_icon_rect.collidepoint(event.pos):
+                    rules_is_opened = not rules_is_opened
                 elif mini_passport_rect.collidepoint(event.pos):
                     passport_is_opened = False
             elif mini_passport_rect.collidepoint(event.pos):
@@ -189,7 +190,7 @@ while running:
     if rules_scale > 0.05:
         RULES_WIDTH, RULES_HEIGHT = 290,480
         TRANSPARENT_BORDER = 14
-        rules_surface = pygame.Surface(RULES_WIDTH + 15, RULES_HEIGHT + 15 + TRANSPARENT_BORDER)
+        rules_surface = pygame.Surface((RULES_WIDTH + 15, RULES_HEIGHT + 15 + TRANSPARENT_BORDER), pygame.SRCALPHA)
             
         pygame.draw.rect(rules_surface, (15,17,24), (15,15 + TRANSPARENT_BORDER,RULES_WIDTH,RULES_HEIGHT),0,17)
         pygame.draw.rect(rules_surface, (0,190,230),(0, TRANSPARENT_BORDER, RULES_WIDTH,RULES_HEIGHT),0,17)
@@ -227,7 +228,7 @@ while running:
         passport_surface.blit (passport_image, (0,0))
 
         title_text = font.render("GALACTIC PASSPORT", True, (240,210,60))
-        passport_surface.blit(title_text(95,10))
+        passport_surface.blit(title_text, (95,10))
 
         mini_photo = pygame.transform.scale(alien_img, (96,96))
         passport_surface.blit(mini_photo, (22,68))
@@ -236,26 +237,26 @@ while running:
         passport_surface.blit(small_font.render("DOCUMENT ID: #13565", True, (30,34,42)), (270,86))
         passport_surface.blit(small_font.render("SECTOR: OUTER", True, (30,34,42)), (270,106))
 
-        passport_surface.blit(field_font.render(f"NAME: {current_alien.passport.name}",True,"black"), (155,143))
-        passport_surface.blit(field_font.render(f"PLANET: {current_alien.passport.planet}", True, "black"), (34,173))
-        passport_surface.blit(field_font.render(f"EXPIRES : {current_alien.passport.expiration_date}", True, "black"), (34,202))
+        passport_surface.blit(field_font.render(f"NAME: {current_alien.passport.name}",True,"black"), (165,145))
+        passport_surface.blit(field_font.render(f"PLANET: {current_alien.passport.planet}", True, "black"), (165,175))
+        passport_surface.blit(field_font.render(f"EXPIRES : {current_alien.passport.expiration_date}", True, "black"), (165,205))
 
         bars = 260
         for width in [3,3,2,2,4,2,4,6,3,4,5,3,2,2,2,3,4,4,2,2,3,5,2]:
             pygame.draw.rect(passport_surface, "black", (bars, 265, width, 36))
             bars += width + 4
 
-        x_button_close_rect = pygame.Rect(passport_width - 45 , 10, 34, 34)
+        x_button_close_rect = pygame.Rect(passport_width - 45 , 10, 25, 25)
         global_close_button = x_button_close_rect.move(passport_rect.x, passport_rect.y)
 
         x_button_background = (240,60,80) if global_close_button.collidepoint(mouse_pos) else (185,30,40)
-        pygame.draw.rect(passport_surface, x_button_background, x_button_close_rect,0,18)
-        pygame.draw.rect(passport_surface, (255,255,255), x_button_close_rect,2,18)
+        pygame.draw.rect(passport_surface, x_button_background, x_button_close_rect,0,8)
+        pygame.draw.rect(passport_surface, (255,255,255), x_button_close_rect,2,8)
         x_button_close_text = small_font.render("X", True, "white")
         passport_surface.blit(x_button_close_text, x_button_close_text.get_rect(center =x_button_close_rect.center))
 
-        variable_x = mini_passport_rect.x + (passport_rect.x - mini_passport_rect.x)
-        variable_y = mini_passport_rect.x + (passport_rect.y - mini_passport_rect.y)
+        variable_x = mini_passport_rect.x + (passport_rect.x - mini_passport_rect.x) * passport_scale
+        variable_y = mini_passport_rect.y + (passport_rect.y - mini_passport_rect.y) * passport_scale
         scaled_width = max(1,int((passport_width +12) * passport_scale))
         scaled_height = max(1, int((passport_height + 12)* passport_scale))
         scaled_passport = pygame.transform.scale(passport_surface, (scaled_width,scaled_height))
