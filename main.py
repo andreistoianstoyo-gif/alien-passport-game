@@ -47,6 +47,20 @@ rules_icon_rect = rules_icon.get_rect(topright=(1305,0))
 approve_button = PixelButton(300,605,270,90,"APPROVE", big_font, (0,200,0),(50,240,100), (0,100,32))
 deny_button = PixelButton(700,605,280,90, "DENY", big_font, (200,0,0), (240,50,100), (100,0,32))
 
+question_origin_button = PixelButton(300,500,215,50, "[1] ORIGIN?", small_font, (70,82,105),(95,112,142),(30,36,48))
+question_limbs_button = PixelButton(532, 500,215,46, "[2] LIMBS?", small_font, (70,82,105),(95,112,142),(30,36,48))
+question_purpose_button = PixelButton(765, 500,215,46, "[3] PURPOSE?", small_font,(70,82,105),(95,112,142),(30,36,48))
+
+play_button = PixelButton(490, 310, 300, 80, "PLAY", big_font, (0,200,0),(50,240,100),(0,100,32))
+settings_button = PixelButton(490,415,300,80, "SETTINGS", big_font, (230,180,40),(205,205,75),(120,90,15))
+quit_button = PixelButton(490,520,300,80, "QUIT", big_font,(200,0,0),(240,50,100),(100,0,32))
+
+fullscreen_button = PixelButton(440,300,400,80, "FULLSCREEN: OFF", font, (70,82,105),(95,112,142),(30,36,48))
+back_button = PixelButton(490,520,300,80, "BACK", big_font, (230,180.40), (250,205,75),(120,90,15))
+
+retry_button = PixelButton(360,460,260,80, "PLAY AGAIN", font, (0,200,0),(50,240,100),(0,100,32))
+lobby_button = PixelButton(660,460,260,80, "LOBBY", font,(230,180,40),(250,205,75),(120,90,15))
+
 #state of the game
 current_alien = Alien()
 current_rule = generate_rules()["RULE"]
@@ -96,8 +110,6 @@ while running:
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
 
-            
-
             if passport_is_opened and passport_scale > 0.9:
                 close_button_rect = pygame.Rect(passport_rect.right - 45, passport_rect.y + 10,34,34)
                 title_bar_rect = pygame.Rect(passport_rect.x, passport_rect.y, passport_width - 50, 54)
@@ -108,12 +120,11 @@ while running:
                 elif title_bar_rect.collidepoint(event.pos):
                     dragging_passport = True
                     drag_offset = (passport_rect.x - event.pos[0],passport_rect.y - event.pos[1])
-                elif rules_icon_rect.collidepoint(event.pos):
-                    rules_is_opened = not rules_is_opened
-                elif mini_passport_rect.collidepoint(event.pos):
-                    passport_is_opened = False
+            elif rules_icon_rect.collidepoint(event.pos):
+                rules_is_opened = not rules_is_opened
             elif mini_passport_rect.collidepoint(event.pos):
-                passport_is_opened = True
+                passport_is_opened = not passport_is_opened
+                dragging_passport = False
 
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
              dragging_passport = False
