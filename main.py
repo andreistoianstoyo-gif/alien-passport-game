@@ -55,3 +55,88 @@ strikes = 0
 feedback_text = ""
 feedback_colour = "white"
 feedback_timer = 0.0
+
+#ui windows settings
+passport_is_opened = False
+passport_scale = 0.0
+dragging_passport = False
+drag_offset = (0,0)
+
+rules_is_opened = False
+rules_scale = 0.0
+
+running = True
+while running:
+    dt = clock.tick(60)/ 1000
+    mouse_pos = pygame.mouse.get_pos()
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if event.type == pygame.KEYDOWN:
+
+            if event.key == pygame.K_r:
+                rules_is_opened = not rules_is_opened
+
+            if event.key == pygame.K_p:
+                passport_is_opened = not passport_is_opened
+                dragging_passport = False
+
+            if event.key == pygame.K_ESCAPE:
+                passport_is_opened = False
+                rules_is_opened = False
+                dragging_passport = False
+
+            if event.key == pygame.K_space:
+                current_alien = Alien()
+                current_rule = generate_rules()["RULE"]
+                passport_is_opened = False
+                dragging_passport = False
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+
+            if rules_icon_rect.collidepoint(event.pos):
+                rules_is_opened = not rules_is_opened
+
+            if passport_is_opened and passport_scale > 0.9:
+                close_button_rect = pygame.Rect = (passport_rect.right - 45, passport_rect.y + 10,34,34)
+                title_bar_rect = pygame.Rect(passport_rect.x, passport_rect.y, passport_width - 50, 54)
+
+                if close_button_rect.collidepoint(event.pos):
+                    passport_is_opened = False
+                    dragging_passport = False
+                elif title_bar_rect.collidepoint(event.pos):
+                    dragging_passport = True
+                    drag_offset = (passport_rect - event.pos[0],passport_rect.y - event.pos[1])
+                elif mini_passport_rect.collidepoint(event.pos):
+                    passport_is_opened = False
+            elif mini_passport_rect.collidepoint(event.pos):
+                passport_is_opened = True
+
+        if event.type == pygame.MOUSEBUTTONUP and event.button == [1]:
+             dragging_passport = False
+
+        if event.type == pygame.MOUSEMOTION and dragging_passport:
+            passport_rect.x = event.pos[0] + drag_offset[0]
+            passport_rect.y = event.pos[1] + drag_offset[1]
+            passport_rect.clamp_id(pygame.Rect(0,0, LENGTH, HEIGHT))
+
+        #checking da decision on approve or deny
+        if approve_button.clicking(event) or deny_button.clicking(event):
+            player_approval = approve_button.clicking(event)
+            if check_decision(current_alien, current_rule, player_approval):
+                score += 1
+                feedback_text = "APPROVED / DENIED CORRECTLY! +1(nice job bro)"
+                feedback_colour = (80,240,120)
+            else:
+                strikes += 1
+                feedback_text = "WRONG DECISION! (dumbass)"
+                feedback_colour = (240,70,90)
+
+            feedback_timer = 1.6
+            current_alien = Alien()
+            current_rule = generate_rules()["RULE"]
+            passport_is_opened = False
+            dragging_passport = False
+             
