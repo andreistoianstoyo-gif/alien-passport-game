@@ -7,7 +7,7 @@ from ui import PixelButton, pixel_8_bit_border, not_unbound_text
 
 pygame.init()
 LENGTH, HEIGHT = 1280,720
-screen = pygame.display.set_mode((LENGTH,HEIGHT))
+screen = pygame.display.set_mode((LENGTH,HEIGHT), pygame.SCALED)
 pygame.display.set_caption("RuAlien?")
 clock = pygame.time.Clock()
 
@@ -58,7 +58,7 @@ settings_button = PixelButton(490,415,300,80, "SETTINGS", big_font, (230,180,40)
 quit_button = PixelButton(490,520,300,80, "QUIT", big_font,(200,0,0),(240,50,100),(100,0,32))
 
 fullscreen_button = PixelButton(440,300,400,80, "FULLSCREEN: OFF", font, (70,82,105),(95,112,142),(30,36,48))
-back_button = PixelButton(490,520,300,80, "BACK", big_font, (230,180.40), (250,205,75),(120,90,15))
+back_button = PixelButton(490,520,300,80, "BACK", big_font, (230,180,40), (250,205,75),(120,90,15))
 
 retry_button = PixelButton(360,460,260,80, "PLAY AGAIN", font, (0,200,0),(50,240,100),(0,100,32))
 lobby_button = PixelButton(660,460,260,80, "LOBBY", font,(230,180,40),(250,205,75),(120,90,15))
@@ -117,6 +117,7 @@ running = True
 while running:
     dt = clock.tick(60)/ 1000
     mouse_pos = pygame.mouse.get_pos()
+    mouse_pressed_true = pygame.mouse.get_pressed()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -139,7 +140,7 @@ while running:
             if fullscreen_button.clicking(event):
                 pygame.display.toggle_fullscreen()
                 is_fullscreen = not is_fullscreen
-                fullscreen_button.tect = f"FULLSCREEN : {'ON'if is_fullscreen else 'OFF'}"
+                fullscreen_button.text = f"FULLSCREEN : {'ON'if is_fullscreen else 'OFF'}"
             elif back_button.clicking(event) or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 game_state = "LOBBY"
 
@@ -241,123 +242,183 @@ while running:
 
     if game_state == "LOBBY":
         lobby_card = pygame.Rect(340,70,600,580)
-    #centeh window
-    booth_rect = pygame.Rect(415,35,450,425)
-    pixel_8_bit_border(screen, booth_rect, (28,34,46), (35,42,56), notch = 8, border = 8)
-    pygame.draw.line(screen, (42,50,66), (450,70), (520,140), 4)
-    pygame.draw.line(screen, (42,50,66), (475,70), (535,130), 2)
+        pixel_8_bit_border(screen, lobby_card.move(10,10),(15,18,26), (15,18,26), notch = 8, border = 8)
+        pixel_8_bit_border(screen,lobby_card, (34,40,54), (240,200,50), notch = 8,border = 8)
 
-    alien_booth_rect = big_alien_image.get_rect(center=(640,275))
-    screen.blit(big_alien_image,alien_booth_rect)
+        title_surf = big_font.render("RuAlien?", True, (240,210,60))
+        screen.blit(title_surf, title_surf.get_rect(centerx = 640, y =110))
 
-    #table
-    pygame.draw.rect(screen, (42,48,62), (0,460,1280,260))
-    pygame.draw.rect(screen, (80,90,110), (0,460,1280,16))
-    pygame.draw.line(screen, (20,24,32), (0,476), (1280,476), 4)
-    for bolts in range(40,1280,160):
-        pygame.draw.rect(screen, (35,40,45),(bolts, 465,6,6))
+        subtitle_surf = small_font.render("GALACTIC BORDER CONTROL", True, (180,190,210))
+        screen.blit(subtitle_surf, subtitle_surf.get_rect(centerx = 640, y = 185))
 
-    #passport on the table
-    hovering = -5 if mini_passport_rect.collidepoint(mouse_pos) else 0
-    screen.blit(cover_image, (mini_passport_rect.x, mini_passport_rect.y + hovering))
+        mini_lobby_preview_alien = pygame . transform.scale(alien_img, (84,84))
+        screen.blit (mini_lobby_preview_alien, mini_lobby_preview_alien.get_rect(centerx = 640, y = 215))
 
-    #approve/deny buttohs
-    mouse_pressed_true = pygame.mouse.get_pressed()
-    approve_button.draw(screen,mouse_pos,mouse_pressed_true)
-    deny_button.draw(screen, mouse_pos, mouse_pressed_true)
+        play_button.draw(screen,mouse_pos,mouse_pressed_true)
+        settings_button.draw(screen,mouse_pos,mouse_pressed_true)
+        quit_button.draw(screen,mouse_pos,mouse_pressed_true)
 
-    #HUD (scores and all of that blah-blah)
-    hud_text = rule_font.render(f"SCORE:{score} | STRIKES: {strikes}/3", True, "white")
-    screen.blit(hud_text, (40,40))
+    elif game_state == "SETTINGS":
+        settings_card = pygame.Rect(320,90,540,540)
+        pixel_8_bit_border(screen, settings_card.move(10,10),(15,18,26), (15,18,26), notch = 8, border = 8)
+        pixel_8_bit_border(screen,settings_card,(34,40,54), (240,200,50),notch = 8,border = 8)
 
-    if feedback_timer > 0:
-        feedback_timer -= dt
-        feedback_surface = rule_font.render(feedback_text, True, feedback_colour)
-        screen.blit(feedback_surface, feedback_surface.get_rect(centerx= 640, y=10))
+        settings_title = big_font.render("SETTINGS & CONTROLS", True, (240,210,60))
+        screen.blit(settings_title, settings_title.get_rect(centerx =650, y = 130))
 
-    #daily rules things
-    if rules_icon_rect.collidepoint(mouse_pos):
-        screen.blit(rules_icon, (rules_icon_rect.x, rules_icon_rect.y - 3))
-    else:
-        screen.blit(rules_icon, rules_icon_rect)
+        controls_lines = [
+            "[P] Open / Close Passport  |  [R] Open / Close Rules",
+            "[1] [2] [3] Ask Alien Questions  |  [ESC] Close Windows",
+        ]
+        for x, line in enumerate(controls_lines):
+            controls_surface = small_font.render(line, True, (210,215,225))
+            screen.blit(controls_surface, controls_surface.get_rect(centerx = 640, y=210 + x * 30))
 
-    target_scale = 1.0 if rules_is_opened else 0.0
-    rules_scale += (target_scale - rules_scale) * 20 * dt
+        fullscreen_button.draw(screen, mouse_pos, mouse_pressed_true)
+        back_button.draw(screen, mouse_pos, mouse_pressed_true)
 
-    if rules_scale > 0.05:
-        RULES_WIDTH, RULES_HEIGHT = 290,480
-        TRANSPARENT_BORDER = 14
-        rules_surface = pygame.Surface((RULES_WIDTH + 15, RULES_HEIGHT + 15 + TRANSPARENT_BORDER), pygame.SRCALPHA)
-            
-        pygame.draw.rect(rules_surface, (15,17,24), (15,15 + TRANSPARENT_BORDER,RULES_WIDTH,RULES_HEIGHT),0,17)
-        pygame.draw.rect(rules_surface, (0,190,230),(0, TRANSPARENT_BORDER, RULES_WIDTH,RULES_HEIGHT),0,17)
-        pygame.draw.rect(rules_surface, (10,75,220), (0,TRANSPARENT_BORDER, RULES_WIDTH+3, RULES_HEIGHT+3),7,20)
+    elif game_state == "PLAYING":
 
-        rules_title = font.render("DAILY RULES", True, "black")
-        rules_title_rect = rules_title.get_rect(centerx = RULES_WIDTH // 2, y = 20 +TRANSPARENT_BORDER)
-        rules_surface.blit(rules_title, rules_title_rect)
-        pygame.draw.line(rules_surface, (12,17,24), (25,55 + TRANSPARENT_BORDER),(RULES_WIDTH - 25, 55 + TRANSPARENT_BORDER),3)
-        pygame.draw.line(rules_surface, (200,200,0), (100,3 + TRANSPARENT_BORDER),(RULES_WIDTH - 100,3 + TRANSPARENT_BORDER),7)
-        pygame.draw.line(rules_surface, (220,220,0), (100, TRANSPARENT_BORDER),(RULES_WIDTH-100, TRANSPARENT_BORDER),12)
+        #centeh window
+        booth_rect = pygame.Rect(415,35,450,425)
+        pixel_8_bit_border(screen, booth_rect, (28,34,46), (35,42,56), notch = 8, border = 8)
+        pygame.draw.line(screen, (42,50,66), (450,70), (520,140), 4)
+        pygame.draw.line(screen, (42,50,66), (475,70), (535,130), 2)
 
-        not_unbound_text(
-            rules_surface,
-            f"RULE 1: {current_rule}",
-            rule_font,
-            "black",
-            pygame.Rect(0,0,RULES_WIDTH, RULES_HEIGHT),
-            75,
-        )
+        alien_booth_rect = big_alien_image.get_rect(center=(640,275))
+        screen.blit(big_alien_image,alien_booth_rect)
 
-        NEW_WIDTH = max(1, int(RULES_WIDTH * rules_scale))
-        NEW_HEIGHT = max(1,int(RULES_HEIGHT * rules_scale))
-        scaled_panel = pygame.transform.scale(rules_surface, (NEW_WIDTH, NEW_HEIGHT))
-        scaled_rect = scaled_panel.get_rect(topright=(1250,30))
-        screen.blit(scaled_panel,scaled_rect)
+        #bubble dialogues
+        if active_reply:
+            bubble_rect = pygame.Rect(440,55,400,68)
+            pixel_8_bit_border(screen, bubble_rect, (235,238,245), (240,200,50),notch=4, border=4)
+            reply_surface = small_font.render(active_reply, True, "black")
+            screen.blit(reply_surface, reply_surface.get_rect(center = bubble_rect.center))
 
-    #PASSPORTTTTTTT
-    target_idk_scale = 1.0 if passport_is_opened else 0.0
-    passport_scale += (target_idk_scale - passport_scale) * 20 * dt
+        #table
+        pygame.draw.rect(screen, (42,48,62), (0,460,1280,260))
+        pygame.draw.rect(screen, (80,90,110), (0,460,1280,16))
+        pygame.draw.line(screen, (20,24,32), (0,476), (1280,476), 4)
+        for bolts in range(40,1280,160):
+            pygame.draw.rect(screen, (35,40,45),(bolts, 465,6,6))
 
-    if passport_scale > 0.05:
-        passport_surface = pygame.Surface((passport_width + 12, passport_height + 12), pygame.SRCALPHA)
-        passport_surface.blit (passport_shadow_image, (10,10))
-        passport_surface.blit (passport_image, (0,0))
+        #passport on the table
+        hovering = -5 if mini_passport_rect.collidepoint(mouse_pos) else 0
+        screen.blit(cover_image, (mini_passport_rect.x, mini_passport_rect.y + hovering))
 
-        title_text = font.render("GALACTIC PASSPORT", True, (240,210,60))
-        passport_surface.blit(title_text, (95,10))
+        #approve/deny buttohs
+        question_origin_button.draw(screen,mouse_pos,mouse_pressed_true)
+        question_limbs_button.draw(screen,mouse_pos,mouse_pressed_true)
+        question_purpose_button.draw(screen,mouse_pos,mouse_pressed_true)
+        
+        approve_button.draw(screen,mouse_pos,mouse_pressed_true)
+        deny_button.draw(screen, mouse_pos, mouse_pressed_true)
 
-        mini_photo = pygame.transform.scale(alien_img, (96,96))
-        passport_surface.blit(mini_photo, (22,68))
+        #HUD (scores and all of that blah-blah)
+        hud_text = rule_font.render(f"SCORE:{score} | STRIKES: {strikes}/3", True, "white")
+        screen.blit(hud_text, (40,40))
 
-        passport_surface.blit(small_font.render("CLASS : TRANSIT", True, (30,34,42)), (270,66))
-        passport_surface.blit(small_font.render("DOCUMENT ID: #13565", True, (30,34,42)), (270,86))
-        passport_surface.blit(small_font.render("SECTOR: OUTER", True, (30,34,42)), (270,106))
+        if feedback_timer > 0:
+            feedback_timer -= dt
+            feedback_surface = rule_font.render(feedback_text, True, feedback_colour)
+            screen.blit(feedback_surface, feedback_surface.get_rect(centerx= 640, y=10))
 
-        passport_surface.blit(field_font.render(f"NAME: {current_alien.passport.name}",True,"black"), (165,145))
-        passport_surface.blit(field_font.render(f"PLANET: {current_alien.passport.planet}", True, "black"), (165,175))
-        passport_surface.blit(field_font.render(f"EXPIRES : {current_alien.passport.expiration_date}", True, "black"), (165,205))
+        #daily rules things
+        if rules_icon_rect.collidepoint(mouse_pos):
+            screen.blit(rules_icon, (rules_icon_rect.x, rules_icon_rect.y - 3))
+        else:
+            screen.blit(rules_icon, rules_icon_rect)
 
-        bars = 260
-        for width in [3,3,2,2,4,2,4,6,3,4,5,3,2,2,2,3,4,4,2,2,3,5,2]:
-            pygame.draw.rect(passport_surface, "black", (bars, 265, width, 36))
-            bars += width + 4
+        target_scale = 1.0 if rules_is_opened else 0.0
+        rules_scale += (target_scale - rules_scale) * 20 * dt
 
-        x_button_close_rect = pygame.Rect(passport_width - 45 , 10, 25, 25)
-        global_close_button = x_button_close_rect.move(passport_rect.x, passport_rect.y)
+        if rules_scale > 0.05:
+            RULES_WIDTH, RULES_HEIGHT = 290,480
+            TRANSPARENT_BORDER = 14
+            rules_surface = pygame.Surface((RULES_WIDTH + 15, RULES_HEIGHT + 15 + TRANSPARENT_BORDER), pygame.SRCALPHA)
+                
+            pygame.draw.rect(rules_surface, (15,17,24), (15,15 + TRANSPARENT_BORDER,RULES_WIDTH,RULES_HEIGHT),0,17)
+            pygame.draw.rect(rules_surface, (0,190,230),(0, TRANSPARENT_BORDER, RULES_WIDTH,RULES_HEIGHT),0,17)
+            pygame.draw.rect(rules_surface, (10,75,220), (0,TRANSPARENT_BORDER, RULES_WIDTH+3, RULES_HEIGHT+3),7,20)
 
-        x_button_background = (240,60,80) if global_close_button.collidepoint(mouse_pos) else (185,30,40)
-        pygame.draw.rect(passport_surface, x_button_background, x_button_close_rect,0,8)
-        pygame.draw.rect(passport_surface, (255,255,255), x_button_close_rect,2,8)
-        x_button_close_text = small_font.render("X", True, "white")
-        passport_surface.blit(x_button_close_text, x_button_close_text.get_rect(center =x_button_close_rect.center))
+            rules_title = font.render("DAILY RULES", True, "black")
+            rules_title_rect = rules_title.get_rect(centerx = RULES_WIDTH // 2, y = 20 +TRANSPARENT_BORDER)
+            rules_surface.blit(rules_title, rules_title_rect)
+            pygame.draw.line(rules_surface, (12,17,24), (25,55 + TRANSPARENT_BORDER),(RULES_WIDTH - 25, 55 + TRANSPARENT_BORDER),3)
+            pygame.draw.line(rules_surface, (200,200,0), (100,3 + TRANSPARENT_BORDER),(RULES_WIDTH - 100,3 + TRANSPARENT_BORDER),7)
+            pygame.draw.line(rules_surface, (220,220,0), (100, TRANSPARENT_BORDER),(RULES_WIDTH-100, TRANSPARENT_BORDER),12)
 
-        variable_x = mini_passport_rect.x + (passport_rect.x - mini_passport_rect.x) * passport_scale
-        variable_y = mini_passport_rect.y + (passport_rect.y - mini_passport_rect.y) * passport_scale
-        scaled_width = max(1,int((passport_width +12) * passport_scale))
-        scaled_height = max(1, int((passport_height + 12)* passport_scale))
-        scaled_passport = pygame.transform.scale(passport_surface, (scaled_width,scaled_height))
-        screen.blit(scaled_passport, (int(variable_x), int(variable_y)))
+            not_unbound_text(
+                rules_surface,
+                f"RULE 1: {current_rule}",
+                rule_font,
+                "black",
+                pygame.Rect(0,0,RULES_WIDTH, RULES_HEIGHT),
+                75,
+            )
+            not_unbound_text(
+                rules_surface,
+                f"RULE 2: Ask questions! Deny if anythin is mischevious.(bad aliens aren't allowed)!",
+                rule_font,
+                "black",
+                pygame.Rect(0,0,RULES_WIDTH, RULES_HEIGHT),
+                195,
+            )
+
+            NEW_WIDTH = max(1, int(RULES_WIDTH * rules_scale))
+            NEW_HEIGHT = max(1,int(RULES_HEIGHT * rules_scale))
+            scaled_panel = pygame.transform.scale(rules_surface, (NEW_WIDTH, NEW_HEIGHT))
+            scaled_rect = scaled_panel.get_rect(topright=(1250,30))
+            screen.blit(scaled_panel,scaled_rect)
+
+        #PASSPORTTTTTTT
+        target_idk_scale = 1.0 if passport_is_opened else 0.0
+        passport_scale += (target_idk_scale - passport_scale) * 20 * dt
+
+        if passport_scale > 0.05:
+            passport_surface = pygame.Surface((passport_width + 12, passport_height + 12), pygame.SRCALPHA)
+            passport_surface.blit (passport_shadow_image, (10,10))
+            passport_surface.blit (passport_image, (0,0))
+
+            title_text = font.render("GALACTIC PASSPORT", True, (240,210,60))
+            passport_surface.blit(title_text, (95,10))
+
+            mini_photo = pygame.transform.scale(alien_img, (96,96))
+            passport_surface.blit(mini_photo, (22,68))
+
+            passport_surface.blit(small_font.render("CLASS : TRANSIT", True, (30,34,42)), (270,66))
+            passport_surface.blit(small_font.render("DOCUMENT ID: #13565", True, (30,34,42)), (270,86))
+            passport_surface.blit(small_font.render("SECTOR: OUTER", True, (30,34,42)), (270,106))
+
+            passport_surface.blit(field_font.render(f"NAME: {current_alien.passport.name}",True,"black"), (165,145))
+            passport_surface.blit(field_font.render(f"PLANET: {current_alien.passport.planet}", True, "black"), (165,175))
+            passport_surface.blit(field_font.render(f"EXPIRES : {current_alien.passport.expiration_date}", True, "black"), (165,205))
+
+            bars = 260
+            for width in [3,3,2,2,4,2,4,6,3,4,5,3,2,2,2,3,4,4,2,2,3,5,2]:
+                pygame.draw.rect(passport_surface, "black", (bars, 265, width, 36))
+                bars += width + 4
+
+            x_button_close_rect = pygame.Rect(passport_width - 45 , 10, 25, 25)
+            global_close_button = x_button_close_rect.move(passport_rect.x, passport_rect.y)
+
+            x_button_background = (240,60,80) if global_close_button.collidepoint(mouse_pos) else (185,30,40)
+            pygame.draw.rect(passport_surface, x_button_background, x_button_close_rect,0,8)
+            pygame.draw.rect(passport_surface, (255,255,255), x_button_close_rect,2,8)
+            x_button_close_text = small_font.render("X", True, "white")
+            passport_surface.blit(x_button_close_text, x_button_close_text.get_rect(center =x_button_close_rect.center))
+
+            variable_x = mini_passport_rect.x + (passport_rect.x - mini_passport_rect.x) * passport_scale
+            variable_y = mini_passport_rect.y + (passport_rect.y - mini_passport_rect.y) * passport_scale
+            scaled_width = max(1,int((passport_width +12) * passport_scale))
+            scaled_height = max(1, int((passport_height + 12)* passport_scale))
+            scaled_passport = pygame.transform.scale(passport_surface, (scaled_width,scaled_height))
+            screen.blit(scaled_passport, (int(variable_x), int(variable_y)))
+
+        elif game_state == "GAME_OVER":
+            game_over_card = pygame.Rect(310,130,660,460)
+            pixel_8_bit_border(screen, game_over_card.move(10,10), (15,18,26), (15,18,26), notch = 8, border = 8)
+            pixel_8_bit_border(screen, game_over_card, (34,40,54), (220,45,65), notch = 8, border = 8)
 
     pygame.display.flip()
 
