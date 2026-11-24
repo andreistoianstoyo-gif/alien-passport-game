@@ -115,8 +115,8 @@ if __name__ == "__main__":
     rules_icon = pygame.image.load("assets/sprites/rules.png").convert_alpha()
     rules_icon = pygame.transform.scale(rules_icon,(192,192))
     rules_icon_rect = rules_icon.get_rect(topright=(1305,0))
-    rules_open = True
-    rules_scale = 1.0
+    rules_open = False
+    rules_scale = 0.0
     screen.blit(rules_icon, rules_icon_rect)
 
     def not_unbound_text(surface, text, font,colour,rect,start_y):
