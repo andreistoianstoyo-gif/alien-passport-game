@@ -87,6 +87,14 @@ def build_alien_encounter():
     }
     return alien, rule, dialogue
 
+def reset_game():
+    alien,rule,dialogue = build_alien_encounter()
+    return alien,rule,dialogue, 0, 0, "", "white",0.0,""
+
+#game state 
+game_state = "LOBBY"
+current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
+
 #state of the game
 current_alien = Alien()
 current_rule = generate_rules()["RULE"]
@@ -114,73 +122,125 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        if event.type == pygame.KEYDOWN:
-
-            if event.key == pygame.K_r:
-                rules_is_opened = not rules_is_opened
-
-            if event.key == pygame.K_p:
-                passport_is_opened = not passport_is_opened
-                dragging_passport = False
-
-            if event.key == pygame.K_ESCAPE:
+        #lobby eveniments
+        if game_state == "LOBBY":
+            if play_button.clicking(event):
+                current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
                 passport_is_opened = False
                 rules_is_opened = False
-                dragging_passport = False
+                game_state = "PLAYING"
+            elif settings_button.clicking(event):
+                game_state = "SETTINGS"
+            elif quit_button.clicking(event):
+                running = False
 
-            if event.key == pygame.K_SPACE:
-                current_alien = Alien()
-                current_rule = generate_rules()["RULE"]
+        #settings eveniments
+        elif game_state == "SETTINGS":
+            if fullscreen_button.clicking(event):
+                pygame.display.toggle_fullscreen()
+                is_fullscreen = not is_fullscreen
+                fullscreen_button.tect = f"FULLSCREEN : {'ON'if is_fullscreen else 'OFF'}"
+            elif back_button.clicking(event) or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                game_state = "LOBBY"
+
+        #game over eveniments(damn bro)
+        elif game_state == "GAME_OVER":
+            if retry_button.clicking(event):
+                current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
                 passport_is_opened = False
-                dragging_passport = False
+                rules_is_opened = False
+                game_state = "PLAYING"
+            elif lobby_button.clicking(event):
+                game_state = "LOBBY"
 
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        #playing eveniments(yayy)
+        elif game_state == "PLAYING":
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    rules_is_opened = not rules_is_opened
 
-            if passport_is_opened and passport_scale > 0.9:
-                close_button_rect = pygame.Rect(passport_rect.right - 45, passport_rect.y + 10,34,34)
-                title_bar_rect = pygame.Rect(passport_rect.x, passport_rect.y, passport_width - 50, 54)
+                if event.key == pygame.K_p:
+                    passport_is_opened = not passport_is_opened
+                    dragging_passport = False
 
-                if close_button_rect.collidepoint(event.pos):
+                if event.key == pygame.K_ESCAPE:
+                    passport_is_opened = False
+                    rules_is_opened = False
+                    dragging_passport = False
+
+                if event.key == pygame.K_SPACE:
+                    current_alien = Alien()
+                    current_rule = generate_rules()["RULE"]
                     passport_is_opened = False
                     dragging_passport = False
-                elif title_bar_rect.collidepoint(event.pos):
-                    dragging_passport = True
-                    drag_offset = (passport_rect.x - event.pos[0],passport_rect.y - event.pos[1])
-            elif rules_icon_rect.collidepoint(event.pos):
-                rules_is_opened = not rules_is_opened
-            elif mini_passport_rect.collidepoint(event.pos):
-                passport_is_opened = not passport_is_opened
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+
+                if passport_is_opened and passport_scale > 0.9:
+                    close_button_rect = pygame.Rect(passport_rect.right - 45, passport_rect.y + 10,34,34)
+                    title_bar_rect = pygame.Rect(passport_rect.x, passport_rect.y, passport_width - 50, 54)
+
+                    if close_button_rect.collidepoint(event.pos):
+                        passport_is_opened = False
+                        dragging_passport = False
+                    elif title_bar_rect.collidepoint(event.pos):
+                        dragging_passport = True
+                        drag_offset = (passport_rect.x - event.pos[0],passport_rect.y - event.pos[1])
+                elif rules_icon_rect.collidepoint(event.pos):
+                    rules_is_opened = not rules_is_opened
+                elif mini_passport_rect.collidepoint(event.pos):
+                    passport_is_opened = not passport_is_opened
+                    dragging_passport = False
+
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 dragging_passport = False
 
-        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-             dragging_passport = False
+            if event.type == pygame.MOUSEMOTION and dragging_passport:
+                passport_rect.x = event.pos[0] + drag_offset[0]
+                passport_rect.y = event.pos[1] + drag_offset[1]
+                passport_rect.clamp_ip(pygame.Rect(0,0, LENGTH, HEIGHT))
 
-        if event.type == pygame.MOUSEMOTION and dragging_passport:
-            passport_rect.x = event.pos[0] + drag_offset[0]
-            passport_rect.y = event.pos[1] + drag_offset[1]
-            passport_rect.clamp_ip(pygame.Rect(0,0, LENGTH, HEIGHT))
+            #question buttons(question time hehe)
+            clicking_on_passport = passport_is_opened and passport_rect.collidepoint(mouse_pos) if event.type == pygame.MOUSEBUTTONDOWN else False
+            if not clicking_on_passport:
+                if question_origin_button.clicking(event):
+                    active_reply = alien_dialogue["origin"]
+                if question_limbs_button.clicking(event):
+                    active_reply = alien_dialogue["limbs"]
+                if question_purpose_button.clicking(event):
+                    active_reply = alien_dialogue["purpose"]
 
-        #checking da decision on approve or deny
-        if approve_button.clicking(event) or deny_button.clicking(event):
-            player_approval = approve_button.clicking(event)
-            if check_decision(current_alien, current_rule, player_approval):
-                score += 1
-                feedback_text = "APPROVED / DENIED CORRECTLY! +1(nice job bro)"
-                feedback_colour = (80,240,120)
-            else:
-                strikes += 1
-                feedback_text = "WRONG DECISION! (dumbass)"
-                feedback_colour = (240,70,90)
+                #checking da decision on approve or deny
+                if approve_button.clicking(event) or deny_button.clicking(event):
+                    player_approval = approve_button.clicking(event)
 
-            feedback_timer = 1.6
-            current_alien = Alien()
-            current_rule = generate_rules()["RULE"]
-            passport_is_opened = False
-            dragging_passport = False
+                    real_valid = check_decision(current_alien, current_rule, True) and not alien_dialogue["is_lying"]
+                    is_correct = (player_approval == real_valid)
+
+                    if is_correct:
+                        score += 1
+                        feedback_text = "APPROVED / DENIED CORRECTLY! +1(nice job bro)"
+                        feedback_colour = (80,240,120)
+                    else:
+                        strikes += 1
+                        feedback_text = "WRONG DECISION! (dumbass)"
+                        feedback_colour = (240,70,90)
+
+                    feedback_timer = 1.6
+                    passport_is_opened = False
+                    dragging_passport = False
+
+                    if strikes >= 3:
+                        game_state = "GAME_OVER"
+                    else:
+                        current_alien, current_rule,alien_dialogue = build_alien_encounter()
+                        active_reply = ""
 
     #BACKGROUND
     screen.fill((58,68,88))
 
+    if game_state == "LOBBY":
+        lobby_card = pygame.Rect(340,70,600,580)
     #centeh window
     booth_rect = pygame.Rect(415,35,450,425)
     pixel_8_bit_border(screen, booth_rect, (28,34,46), (35,42,56), notch = 8, border = 8)
