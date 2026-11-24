@@ -23,4 +23,4 @@ class Alien:
             elif anomaly == "colour":
                 s.colour = "orange"
 
-        s.passport = Document(s.name, s.claimed_planet, s.expiration_date)
+        s.passport = Document(s.name, s.claimed_planet, s.expiration_date, s.limbs)

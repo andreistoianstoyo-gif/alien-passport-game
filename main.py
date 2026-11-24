@@ -71,19 +71,23 @@ def build_alien_encounter():
 
     lies = random.random() < 0.25
     spoken_planet = alien.passport.planet
-    purpose = random.choice(["I am just passing by","I came here to work duh","I came to visit the famous Falafel Tower"])
+    purpose = random.choice(["I am just passing by","I came here to work duh","I came to visit the Datei Murla Statue"])
+    spoken_limbs = alien.limbs
 
     if lies:
-        if random.choice([True,False]) and len(planets) > 1:
+        if random.choice(["planet","limbs","purpose"]) and len(planets) > 1:
             other_planet = [p for p in planets if p != alien.passport.planet]
             spoken_planet = random.choice(other_planet)
+        elif lies == "limbs":
+            other_limbs = [n for n in [2,4,6,8] if n != alien.limbs]
+            spoken_limbs = random.choice(other_limbs)
         else:
             purpose = "STEALING... uh, TOURISM!"
 
     dialogue = {
-        "origin": f"I traveled from {spoken_planet} sir.",
-        "limbs": f"I have {alien.limbs} limbs, officer.",
-        "purpose": f"Purpose of visit: {purpose}",
+        "origin": f"I traveled from {spoken_planet}.",
+        "limbs": f"I have {spoken_limbs} limbs, officer.",
+        "purpose": f"{purpose}",
         "is_lying": lies,
     }
     return alien, rule, dialogue
@@ -397,6 +401,7 @@ while running:
             passport_surface.blit(field_font.render(f"NAME: {current_alien.passport.name}",True,"black"), (165,145))
             passport_surface.blit(field_font.render(f"PLANET: {current_alien.passport.planet}", True, "black"), (165,175))
             passport_surface.blit(field_font.render(f"EXPIRES : {current_alien.passport.expiration_date}", True, "black"), (165,205))
+            passport_surface.blit(field_font.render(f"LIMBS : {current_alien.passport.limbs}",True, "black"), (165, 235))
 
             bars = 260
             for width in [3,3,2,2,4,2,4,6,3,4,5,3,2,2,2,3,4,4,2,2,3,5,2]:
