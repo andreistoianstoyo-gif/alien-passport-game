@@ -1,6 +1,8 @@
 import pygame
+import random
 from alien import Alien
 from rules import generate_rules,check_decision
+from species_data import PLANET_SPECIES
 from ui import PixelButton, pixel_8_bit_border, not_unbound_text
 
 pygame.init()
@@ -60,6 +62,30 @@ back_button = PixelButton(490,520,300,80, "BACK", big_font, (230,180.40), (250,2
 
 retry_button = PixelButton(360,460,260,80, "PLAY AGAIN", font, (0,200,0),(50,240,100),(0,100,32))
 lobby_button = PixelButton(660,460,260,80, "LOBBY", font,(230,180,40),(250,205,75),(120,90,15))
+
+def build_alien_encounter():
+    alien = Alien()
+    rule = generate_rules()["RULE"]
+    planets = list(PLANET_SPECIES.keys())
+
+    lies = random.random() < 0.25
+    spoken_planet = alien.passport.planet
+    purpose = random.choice(["I am just passing by","I came here to work duh","I came to visit the famous Falafel Tower"])
+
+    if lies:
+        if random.choice([True,False]) and len(planets) > 1:
+            other_planet = [p for p in planets if p != alien.passport.planet]
+            spoken_planet = random.choice(other_planet)
+        else:
+            purpose = "STEALING... uh, TOURISM!"
+
+    dialogue = {
+        "origin": f"I traveled from {spoken_planet} sir.",
+        "limbs": f"I have {alien.limbs} limbs, officer.",
+        "purpose": f"Purpose of visit: {purpose}",
+        "is_lying": lies,
+    }
+    return alien, rule, dialogue
 
 #state of the game
 current_alien = Alien()
