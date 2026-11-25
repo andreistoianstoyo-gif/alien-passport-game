@@ -8,7 +8,6 @@ from ui import PixelButton, pixel_8_bit_border, not_unbound_text
 pygame.init()
 LENGTH, HEIGHT = 1280,720
 screen = pygame.display.set_mode((LENGTH,HEIGHT), pygame.RESIZABLE | pygame.SCALED)
-canvas = pygame.Surface((LENGTH,HEIGHT))
 pygame.display.set_caption("RuAlien?")
 clock = pygame.time.Clock()
 is_fullscreen = False
@@ -126,15 +125,15 @@ def build_alien_encounter():
     spoken_limbs = alien.limbs
 
     if lies:
-        if lie_type = random.choice(["planet", "limbs", "purpose"])
-            if lie_type == "planet" and len(planets) > 1:
-                other_planet = [p for p in planets if p != alien.passport.planet]
-                spoken_planet = random.choice(other_planet)
-            elif lie_type == "limbs":
-                other_limbs = [n for n in [2,4,6,8] if n != alien.limbs]
-                spoken_limbs = random.choice(other_limbs)
-            else:
-                purpose = "STEALING... uh, TOURISM!"
+        lie_type = random.choice(["planet", "limbs", "purpose"])
+        if lie_type == "planet" and len(planets) > 1:
+            other_planet = [p for p in planets if p != alien.passport.planet]
+            spoken_planet = random.choice(other_planet)
+        elif lie_type == "limbs":
+            other_limbs = [n for n in [2,4,6,8] if n != alien.limbs]
+            spoken_limbs = random.choice(other_limbs)
+        else:
+            purpose = "STEALING... uh, TOURISM!"
 
     dialogue = {
         "origin": f"I traveled from {spoken_planet}.",
@@ -486,8 +485,15 @@ while running:
             passport_surface.blit (passport_shadow_image, (10,10))
             passport_surface.blit (passport_image, (0,0))
 
-            title_text = font.render("GALACTIC PASSPORT", True, (240,210,60))
-            passport_surface.blit(title_text, (95,10))
+            passport_surface.blit(field_font.render(f"NAME: {current_alien.passport.name}",True,"black"), (165,145))
+            passport_surface.blit(field_font.render(f"PLANET: {current_alien.passport.planet}", True, "black"), (165,175))
+            passport_surface.blit(field_font.render(f"EXPIRES : {current_alien.passport.expiration_date}", True, "black"), (165,205))
+            passport_surface.blit(field_font.render(f"LIMBS : {current_alien.passport.limbs}",True, "black"), (165, 235))
+
+            bars = 260
+            for width in [3,3,2,2,4,2,4,6,3,4,5,3,2,2,2,3,4,4,2,2,3,5,2]:
+                pygame.draw.rect(passport_surface, "black", (bars, 265, width, 36))
+                bars += width + 4
 
             mini_photo = pygame.transform.scale(alien_img, (96,96))
             passport_surface.blit(mini_photo, (22,68))
@@ -507,18 +513,7 @@ while running:
                 passport_surface.blit(ink_image, (185, 225))
 
             passport_surface.blit(small_font.render("CLASS : TRANSIT", True, (30,34,42)), (270,66))
-            passport_surface.blit(small_font.render("DOCUMENT ID: #13565", True, (30,34,42)), (270,86))
             passport_surface.blit(small_font.render("SECTOR: OUTER", True, (30,34,42)), (270,106))
-
-            passport_surface.blit(field_font.render(f"NAME: {current_alien.passport.name}",True,"black"), (165,145))
-            passport_surface.blit(field_font.render(f"PLANET: {current_alien.passport.planet}", True, "black"), (165,175))
-            passport_surface.blit(field_font.render(f"EXPIRES : {current_alien.passport.expiration_date}", True, "black"), (165,205))
-            passport_surface.blit(field_font.render(f"LIMBS : {current_alien.passport.limbs}",True, "black"), (165, 235))
-
-            bars = 260
-            for width in [3,3,2,2,4,2,4,6,3,4,5,3,2,2,2,3,4,4,2,2,3,5,2]:
-                pygame.draw.rect(passport_surface, "black", (bars, 265, width, 36))
-                bars += width + 4
 
             x_button_close_rect = pygame.Rect(passport_width - 45 , 10, 25, 25)
             global_close_button = x_button_close_rect.move(passport_rect.x, passport_rect.y)
@@ -536,6 +531,21 @@ while running:
             scaled_passport = pygame.transform.scale(passport_surface, (scaled_width,scaled_height))
             screen.blit(scaled_passport, (int(variable_x), int(variable_y)))
 
+            if animation_state == "STAMPING":
+                target_spot = passport_rect.center if passport_is_opened else mini_passport_rect.center
+                if stamp_timer < 0.22:
+                    t = stamp_timer / 0.22
+                    eased = t*t
+                    sx = 1340 + (target_spot[0]-1340) * eased
+                    sy = target_spot[1] - 45 + 30 * eased
+                elif stamp_timer < 0.48:
+                    sx,sy = target_spot[0], target_spot[1] - 15
+                else:
+                    t = (stamp_timer - 0.48) / 27
+                    sx = target_spot[0] + (1340 - target_spot[0]) * eased
+                    sy = target_spot[1] - 15 - 30 * t
+
+                stamp_rect = stamp_tool_image.get_rect(center = (int(sx), int(sy)))
     elif game_state == "GAME_OVER":
         game_over_card = pygame.Rect(310,130,660,460)
         pixel_8_bit_border(screen, game_over_card.move(10,10), (15,18,26), (15,18,26), notch = 8, border = 8)
@@ -552,6 +562,10 @@ while running:
 
         retry_button.draw(screen,mouse_pos,mouse_pressed_true)
         lobby_button.draw(screen,mouse_pos,mouse_pressed_true)
+
+    if shake_timer > 0:
+        shake_timer -=dt
+        screen.blit(screen.copy(), (random.randint(-6,6), random.randint(-6,6)))
 
     pygame.display.flip()
 
