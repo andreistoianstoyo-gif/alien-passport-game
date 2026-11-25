@@ -144,10 +144,11 @@ def build_alien_encounter():
     return alien, rule, dialogue
 #juicy animations
 animation_state = "ENTERING"
-alien_y = 600.0
-doc_x, doc_y = 640.0,390.0
-doc_angle = 0.0
+alien_x = 960.0
+doc_x, doc_y = 640.0,430.0
+doc_angle = -45.0
 doc_target_angle = 0.0
+doc_t = 0.0
 doc_visible = False
 
 stamp_timer = 0.0
@@ -156,12 +157,12 @@ stamped_ink = None
 shake_timer = 0.0
 
 def start_turn_animation():
-    global animation_state, alien_y,doc_x,doc_y,doc_angle,doc_target_angle,doc_visible,stamp_timer,stamped_ink
+    global animation_state, alien_x,doc_x,doc_y,doc_angle,doc_target_angle,doc_visible,stamp_timer,stamped_ink
     animation_state = "ENTERING"
-    alien_y = 600.0
+    alien_x = 960.0
     doc_x, doc_y = 640.0,390.0
-    doc_angle = 0.0
-    doc_target_angle = random.uniform(-16.0,16.0)
+    doc_angle = -45.0
+    doc_target_angle = random.uniform(-14.0,14.0)
     doc_visible = False
     stamp_timer = 0.0
     stamped_ink = None
@@ -220,7 +221,7 @@ while running:
                 game_state = "LOBBY"
 
         #game over eveniments(damn bro)
-        elif game_state == "GAME_OVER":
+        elif game_state == "GAME OVER":
             if retry_button.clicking(event):
                 current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
                 passport_is_opened = False
@@ -333,20 +334,19 @@ while running:
         back_button.draw(screen, mouse_pos, mouse_pressed_true)
 
     elif game_state == "PLAYING":
-
         if animation_state == "ENTERING":
-            alien_y += (275.0-alien_y) * 9.0 * dt
-            if abs (alien_y- 275.0) < 2.0:
-                alien_y = 275.0
+            alien_x += (640.0-alien_x) * 8.0 * dt
+            if abs (alien_x- 640.0) < 2.0:
+                alien_x = 640.0
                 animation_state = "TOSSING"
                 doc_visible = "True"
         elif animation_state == "TOSSING":
-            doc_x += (185.0 - doc_x) * 8.5 * dt
-            doc_y += (585.0 - doc_y) * 8.5 * dt
-            doc_angle += 900 * dt
-            if abs(doc_x - 185.0) < 3.0 and abs(doc_y - 585.0) < 3.0:
-                doc_x,doc_y = 185.0,585.0
-                doc_angle = doc_target_angle
+            doc_t = min(1.0,doc_t + dt/0.32)
+            ease = 1.0-(1.0 - doc_t) ** 3
+            doc_x = 640.0 + (185.0 - 640.0) * ease
+            doc_y = 430.0 + (585.0 - 430.0) * ease
+            doc_angle = -45.0 + (doc_target_angle + 45.0) * ease
+            if doc_t >= 1.0:
                 animation_state = "WAITING"
         elif animation_state =="STAMPING":
             stamp_timer += dt
@@ -373,7 +373,7 @@ while running:
                 passport_is_opened = False
                 dragging_passport = False
 
-                if strikes > 3:
+                if strikes >= 3:
                     game_state = "GAME OVER"
                 else:
                     current_alien,current_rule, alien_dialogue = build_alien_encounter()
@@ -386,8 +386,11 @@ while running:
         pygame.draw.line(screen, (42,50,66), (450,70), (520,140), 4)
         pygame.draw.line(screen, (42,50,66), (475,70), (535,130), 2)
 
-        alien_booth_rect = big_alien_image.get_rect(center=(640,int(alien_y)))
-        screen.blit(big_alien_image,alien_booth_rect)
+        screen.set_clip(booth_rect.inflate(-16,16))
+        walk_bob = abs((alien_x - 640.0)% 44 -22) * 0.3 if animation_state == "ENTERING" else 0
+        alien_booth_rect = big_alien_image.get_rect(center = (int(alien_x),int(275 - walk_bob)))
+        screen.blit(big_alien_image, alien_booth_rect)
+        screen.set_clip(None)
 
         #bubble dialogues
         if active_reply:
@@ -408,7 +411,7 @@ while running:
         if doc_visible:
             rotated_doc = pygame.transform.rotate(active_cover, doc_angle)
             mini_passport_rect = rotated_doc.get_rect(center = (int(doc_x), int(doc_y)))
-            hovering = -5 if mini_passport_rect.collidepoint(mouse_pos) else 0
+            hovering = -5 if (animation_state == "WAITING" and mini_passport_rect.collidepoint(mouse_pos)) else 0
             screen.blit(cover_image, (mini_passport_rect.x, mini_passport_rect.y + hovering))
 
         #approve/deny buttohs
@@ -531,22 +534,23 @@ while running:
             scaled_passport = pygame.transform.scale(passport_surface, (scaled_width,scaled_height))
             screen.blit(scaled_passport, (int(variable_x), int(variable_y)))
 
-            if animation_state == "STAMPING":
-                target_spot = passport_rect.center if passport_is_opened else mini_passport_rect.center
-                if stamp_timer < 0.22:
-                    t = stamp_timer / 0.22
-                    eased = t*t
-                    sx = 1340 + (target_spot[0]-1340) * eased
-                    sy = target_spot[1] - 45 + 30 * eased
-                elif stamp_timer < 0.48:
-                    sx,sy = target_spot[0], target_spot[1] - 15
-                else:
-                    t = (stamp_timer - 0.48) / 27
-                    sx = target_spot[0] + (1340 - target_spot[0]) * eased
-                    sy = target_spot[1] - 15 - 30 * t
+        if animation_state == "STAMPING":
+            target_spot = passport_rect.center if passport_is_opened else mini_passport_rect.center
+            if stamp_timer < 0.22:
+                t = stamp_timer / 0.22
+                eased = t*t
+                sx = 1340 + (target_spot[0]-1340) * eased
+                sy = target_spot[1] - 45 + 30 * eased
+            elif stamp_timer < 0.48:
+                sx,sy = target_spot[0], target_spot[1] - 15
+            else:
+                t = (stamp_timer - 0.48) / 0.27
+                sx = target_spot[0] + (1340 - target_spot[0]) * t*t
+                sy = target_spot[1] - 15 - 30 * t
 
-                stamp_rect = stamp_tool_image.get_rect(center = (int(sx), int(sy)))
-    elif game_state == "GAME_OVER":
+            stamp_rect = stamp_tool_image.get_rect(center = (int(sx), int(sy)))
+            screen.blit(stamp_tool_image, stamp_rect)
+    elif game_state == "GAME OVER":
         game_over_card = pygame.Rect(310,130,660,460)
         pixel_8_bit_border(screen, game_over_card.move(10,10), (15,18,26), (15,18,26), notch = 8, border = 8)
         pixel_8_bit_border(screen, game_over_card, (34,40,54), (220,45,65), notch = 8, border = 8)
