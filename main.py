@@ -81,9 +81,9 @@ def _make_ink_stamp(text,colour):
     surface.blit(text,text.get_rect(center = (85,27)))
     return pygame.transform.rotate(surface, -12)
 
-id_card_cover_image = load_or_fallback("assets/sprites/id_card_cover.png", (144,96), _draw_id_card_fallback)
+id_card_cover_image = load_or_fallback("assets/sprites/id_card.png", (144,96), _draw_id_card_fallback)
 id_card_cover_open = pygame.transform.scale_by(id_card_cover_image, 3)
-id_card_cover_shadow = pygame.mask.from_surface(id_card_cover_image).to_surface(
+id_card_cover_shadow = pygame.mask.from_surface(id_card_cover_open).to_surface(
     setcolor= (10,12,18,255), unsetcolor=(0,0,0,0)
 )
 student_id_cover_image = load_or_fallback("assets/sprites/student_id_cover.png", (108,144), _draw_student_fallback)
@@ -519,16 +519,17 @@ while running:
             mini_photo = pygame.transform.scale(alien_img, (96,96))
             if is_id_card:
                 title_text = rule_font.render("PLANETARY ID", True, (120,200,255))
-                passport_surface.blit(title_text(22,14))
-                passport_surface.blit(mini_photo(22,56))
-                passport_surface.blit(passport_font.render(f"ID : #{current_alien.doc_id}", True, (30,34,42)), (22,162))
+                passport_surface.blit(title_text,(120,5))
+                passport_surface.blit(mini_photo,(20,56))
+                passport_surface.blit(field_font.render(f"ID : #{current_alien.doc_id}", True, (30,34,42)), (240,80))
 
-                passport_surface.blit(field_font.render(f"NAME: {current_alien.name}", True, "black"), (135,56))
-                passport_surface.blit(field_font.render(f"PLANET: {current_alien.claimed_planet}", True, "black"), (135, 86))
-                passport_surface.blit(field_font.render(f"LIMBS: {current_alien.limbs}", True, "black"),(135,116))
-                passport_surface.blit(field_font.render(f"CLASS: TRANSIT | OUTER", True, (30,34,42)),(135,176))
+                passport_surface.blit(field_font.render(f"SECTOR: OUTER", True, (30,34,42)),(240,100))
+                passport_surface.blit(field_font.render(f"NAME: {current_alien.passport.name}", True, "black"), (150,125))
+                passport_surface.blit(field_font.render(f"PLANET: {current_alien.passport.planet}", True, "black"), (150, 155))
+                passport_surface.blit(field_font.render(f"LIMBS: {current_alien.limbs}", True, "black"),(150,180))
+                passport_surface.blit(field_font.render(f"CLASS: TRANSIT | OUTER", True, (30,34,42)),(240,60))
 
-                bars = 22
+                bars = 200
                 for width in [3,2,2,4,2,3,3,2,2,4,3,3,5,2,2,2,2,3,3,4,4,2,2,3,4]:
                     pygame.draw.rect(passport_surface, "black", (bars, doc_height - 48, width, 28))
                     bars += width +4
@@ -538,26 +539,28 @@ while running:
                     passport_surface.blit(ink_image, (doc_width - 190, doc_height -90))
 
             else:
+                title_text = small_font.render("GALACTIC PASSPORT", True, "black")
+                passport_surface.blit(title_text, (87,20))
                 passport_surface.blit(mini_photo, (22,68))
-                passport_surface.blit(passport_font.render("CLASS : TRANSIT", True, (30,34,42)),(155,50))
-                passport_surface.blit(passport_font.render(f"DOCUMENT ID: #{current_alien.doc_id}", True, (30,34,42)),(155,100))
-                passport_surface.blit(passport_font.render(f"SECTOR: OUTER", True, (30,34,42)),(155,145))
+                passport_surface.blit(field_font.render("CLASS : TRANSIT", True, (30,34,42)),(155,50))
+                passport_surface.blit(field_font.render(f"DOC. ID: #{current_alien.doc_id}", True, (30,34,42)),(155,100))
+                passport_surface.blit(field_font.render(f"SECTOR: OUTER", True, (30,34,42)),(155,145))
 
                 passport_surface.blit(field_font.render(f"NAME: {current_alien.passport.name}", True, "black"),(55,180))
                 passport_surface.blit(field_font.render(f"PLANET: {current_alien.passport.planet}", True, "black"),(55,230))
                 passport_surface.blit(field_font.render(f"EXPIRES : {current_alien.passport.expiration_date}", True, "black"),(55,280))
                 passport_surface.blit(field_font.render(f"LIMBS : {current_alien.passport.limbs}", True, "black"),(200,280))
 
-                bars = 260
+                bars = 130
                 for width in [4,3,2,2,2,2,3,3,3,5,2,2,3,4,2,2,3,3,4,4,4,4,2,1,3]:
-                    pygame.draw.rect(passport_surface, "black", (bars,265,width,36))
+                    pygame.draw.rect(passport_surface, "black", (bars,360,width,36))
                     bars += width +4
 
                 if stamped_ink is not None:
                     ink_image = ink_approved_image if stamped_ink == "APPROVED" else ink_denied_image
                     passport_surface.blit(ink_image, (185,220))
                 
-            x_button_close_rect = pygame.Rect(passport_width - 45 , 10, 25, 25)
+            x_button_close_rect = pygame.Rect(doc_width - 45 , 10, 25, 25)
             global_close_button = x_button_close_rect.move(passport_rect.x, passport_rect.y)
 
             x_button_background = (240,60,80) if global_close_button.collidepoint(mouse_pos) else (185,30,40)
@@ -568,8 +571,8 @@ while running:
 
             variable_x = mini_passport_rect.x + (passport_rect.x - mini_passport_rect.x) * passport_scale
             variable_y = mini_passport_rect.y + (passport_rect.y - mini_passport_rect.y) * passport_scale
-            scaled_width = max(1,int((passport_width +12) * passport_scale))
-            scaled_height = max(1, int((passport_height + 12)* passport_scale))
+            scaled_width = max(1,int((doc_width +12) * passport_scale))
+            scaled_height = max(1, int((doc_height + 12)* passport_scale))
             scaled_passport = pygame.transform.scale(passport_surface, (scaled_width,scaled_height))
             screen.blit(scaled_passport, (int(variable_x), int(variable_y)))
 
