@@ -157,20 +157,23 @@ stamped_ink = None
 shake_timer = 0.0
 
 def start_turn_animation():
-    global animation_state, alien_x,doc_x,doc_y,doc_angle,doc_target_angle,doc_visible,stamp_timer,stamped_ink
+    global animation_state, alien_x,doc_x,doc_y,doc_angle,doc_target_angle,doc_t,doc_visible,stamp_timer,stamped_ink
     animation_state = "ENTERING"
     alien_x = 960.0
     doc_x, doc_y = 640.0,390.0
     doc_angle = -45.0
     doc_target_angle = random.uniform(-14.0,14.0)
+    doc_t = 0
     doc_visible = False
     stamp_timer = 0.0
     stamped_ink = None
 
-
 def reset_game():
+    global day,aliens_today
     alien,rule,dialogue = build_alien_encounter()
     start_turn_animation()
+    day = 1
+    aliens_today = 0
     return alien,rule,dialogue, 0, 0, "", "white",0.0,""
 
 #game state 
@@ -369,11 +372,23 @@ while running:
                     else:
                         feedback_text = "wrong decision bro, you suck"
                     feedback_colour = (240, 70,90)
+                aliens_today +=1
+                if aliens_today >= 5:
+                    day+=1
+                    aliens_today =0
+                    feedback_text = f"DAY {day} HAS STARTED!"
+                    feedback_colour = (240,210,60)
+                
                 feedback_timer = 1.8
                 passport_is_opened = False
                 dragging_passport = False
 
+
                 if strikes >= 3:
+                    game_over_reason = "3 STRIKES REACHED - you suck, everybody died bcus of you"
+                    game_state = "GAME OVER"
+                elif day >= 8:
+                    game_over_reason = "SHIFT COMPLETE! YOU SURVIVED ALL 7 DAYS!"
                     game_state = "GAME OVER"
                 else:
                     current_alien,current_rule, alien_dialogue = build_alien_encounter()
@@ -412,7 +427,7 @@ while running:
             rotated_doc = pygame.transform.rotate(active_cover, doc_angle)
             mini_passport_rect = rotated_doc.get_rect(center = (int(doc_x), int(doc_y)))
             hovering = -5 if (animation_state == "WAITING" and mini_passport_rect.collidepoint(mouse_pos)) else 0
-            screen.blit(cover_image, (mini_passport_rect.x, mini_passport_rect.y + hovering))
+            screen.blit(rotated_doc, (mini_passport_rect.x, mini_passport_rect.y + hovering))
 
         #approve/deny buttohs
         question_origin_button.draw(screen,mouse_pos,mouse_pressed_true)
@@ -425,6 +440,8 @@ while running:
         #HUD (scores and all of that blah-blah)
         hud_text = rule_font.render(f"SCORE:{score} | STRIKES: {strikes}/3", True, "white")
         screen.blit(hud_text, (40,40))
+        days_text = rule_font.render(f"DAY:{day}", True, "white")
+        screen.blit(days_text,(300,40))
 
         if feedback_timer > 0:
             feedback_timer -= dt
