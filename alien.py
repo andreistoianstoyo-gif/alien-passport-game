@@ -16,7 +16,7 @@ class Alien:
         s.doc_type = random.choice(
             ["PASSPORT", "ID CARD", "STUDENT ID"],
         )[0]
-
+        s.doc_id = random.randint(10000,999999)
         #45% chance to be an anomaly
         if random.random() < 0.45:
             anomaly = random.choice(["expiration_date","eyes","colour"])

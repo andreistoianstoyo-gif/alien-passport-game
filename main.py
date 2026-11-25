@@ -8,6 +8,7 @@ from ui import PixelButton, pixel_8_bit_border, not_unbound_text
 pygame.init()
 LENGTH, HEIGHT = 1280,720
 screen = pygame.display.set_mode((LENGTH,HEIGHT), pygame.RESIZABLE | pygame.SCALED)
+canvas = pygame.Surface((LENGTH,HEIGHT))
 pygame.display.set_caption("RuAlien?")
 clock = pygame.time.Clock()
 is_fullscreen = False
@@ -46,6 +47,53 @@ rules_icon = pygame.image.load("assets/sprites/rules.png").convert_alpha()
 rules_icon = pygame.transform.scale(rules_icon,(192,192))
 rules_icon_rect = rules_icon.get_rect(topright=(1305,0))
 
+
+def load_or_fallback(path,size,draw_fn):
+    try:
+        image = pygame.image.load(path).convert_alpha()
+        return pygame.transform.scale(image, size)
+    except FileNotFoundError:
+        surface = pygame.Surface(size, pygame.SRCALPHA)
+        draw_fn(surface)
+        return surface
+
+#covers for the wrong type of documentation
+def _draw_id_card_fallback(self):
+    pixel_8_bit_border(self, pygame.Rect(0,0,144,96), (55,115,175), (25,45,80), notch = 4, border = 4)
+    pygame.draw.rect(self, (240,210,60), (16,22,34,44), 2)
+    pygame.draw.line(self, (230,235,245), (62,30), (126,30), 3)
+    pygame.draw.line(self, (230,235,245), (62,48), (114,48), 3)
+
+def _draw_student_fallback(self):
+    pixel_8_bit_border(self, pygame.Rect(0,0,108,144), (165,48,62), (75,20,28), notch = 4, border = 4)
+    pygame.draw.circle(self, (240,210,60), (54,58), 18, 3)
+    pygame.draw.line(self, (240,230,220), (24,98), (84,98), 3)
+
+def _draw_stamp_fallback(self):
+    pygame.draw.rect(self, (130,75,40), (22,0,28,46), border_radius = 8)
+    pygame.draw.rect(self, (45,50,62), (6,42,60,24), border_radius=4)
+    pygame.draw.rect(self, (200,50,60), (10,60,52,8))
+
+def _make_ink_stamp(text,colour):
+    surface = pygame.Surface((170,54),pygame.SRCALPHA)
+    pygame.draw.rect(surface, colour, (2,2,166,50), 4, border_radius = 4)
+    text = font.render(text, True,colour)
+    surface.blit(text,text.get_rect(center = (85,27)))
+    return pygame.transform.rotate(surface, -12)
+
+id_card_cover_image = load_or_fallback("assets/sprites/id_card_cover.png", (144,96), _draw_id_card_fallback)
+student_id_cover_image = load_or_fallback("assets/sprites/student_id_cover.png", (108,144), _draw_student_fallback)
+stamp_tool_image = load_or_fallback("assets/sprites/stamp_tool.png", (72,74), _draw_stamp_fallback)
+
+ink_approved_image = _make_ink_stamp("APPROVED",(30,175,70))
+ink_denied_image = _make_ink_stamp("DENIED",(215,70,55))
+
+DOC_COVERS = {
+    "PASSPORT": cover_image,
+    "ID CARD": id_card_cover_image,
+    "STUDENT ID": student_id_cover_image,
+}
+
 #buttuhs
 approve_button = PixelButton(300,605,270,90,"APPROVE", big_font, (0,200,0),(50,240,100), (0,100,32))
 deny_button = PixelButton(700,605,280,90, "DENY", big_font, (200,0,0), (240,50,100), (100,0,32))
@@ -78,14 +126,15 @@ def build_alien_encounter():
     spoken_limbs = alien.limbs
 
     if lies:
-        if random.choice(["planet","limbs","purpose"]) and len(planets) > 1:
-            other_planet = [p for p in planets if p != alien.passport.planet]
-            spoken_planet = random.choice(other_planet)
-        elif lies == "limbs":
-            other_limbs = [n for n in [2,4,6,8] if n != alien.limbs]
-            spoken_limbs = random.choice(other_limbs)
-        else:
-            purpose = "STEALING... uh, TOURISM!"
+        if lie_type = random.choice(["planet", "limbs", "purpose"])
+            if lie_type == "planet" and len(planets) > 1:
+                other_planet = [p for p in planets if p != alien.passport.planet]
+                spoken_planet = random.choice(other_planet)
+            elif lie_type == "limbs":
+                other_limbs = [n for n in [2,4,6,8] if n != alien.limbs]
+                spoken_limbs = random.choice(other_limbs)
+            else:
+                purpose = "STEALING... uh, TOURISM!"
 
     dialogue = {
         "origin": f"I traveled from {spoken_planet}.",
@@ -121,22 +170,12 @@ def start_turn_animation():
 
 def reset_game():
     alien,rule,dialogue = build_alien_encounter()
+    start_turn_animation()
     return alien,rule,dialogue, 0, 0, "", "white",0.0,""
 
-def load_or_fallback(path,size,draw_fn):
-    
 #game state 
 game_state = "LOBBY"
 current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
-
-#state of the game
-#current_alien = Alien()
-#current_rule = generate_rules()["RULE"]
-#score = 0
-#strikes = 0
-#feedback_text = ""
-#feedback_colour = "white"
-#feedback_timer = 0.0
 
 #ui windows settings
 passport_is_opened = False
@@ -193,56 +232,11 @@ while running:
 
         #playing eveniments(yayy)
         elif game_state == "PLAYING":
-            if animation_state == "ENTERING":
-                alien_y += (275.0-alien_y) * 9.0 * dt
-                if abs (alien_y- 275.0) < 2.0:
-                    alien_y = 275.0
-                    animation_state = "TOSSING"
-                    doc_visible = "True"
-            elif animation_state == "TOSSING":
-                doc_x += (185.0 - doc_x) * 8.5 * dt
-                doc_y += (585.0 - doc_y) * 8.5 * dt
-                doc_angle += 900 * dt
-                if abs(doc_x - 185.0) < 3.0 and abs(doc_y - 585.0) < 3.0:
-                    doc_x,doc_y = 185.0,585.0
-                    doc_angle = doc_target_angle
-                    animation_state = "WAITING"
-            elif animation_state =="STAMPING":
-                stamp_timer += dt
-                if stamp_timer >= 0.22 and stamped_ink is None:
-                    stamped_ink = "APPROVED" if stamp_decision else "DENIED"
-                    shake_timer = 0.14
-                if stamp_timer > 0.75:
-                    valid_doc = (current_alien.doc_type == "PASSPORT")
-                    real_valid = valid_doc and check_decision(current_alien,current_rule,True) and not alien_dialogue["is_lying"]
-                    is_correct =(stamp_decision == real_valid)
-
-                    if is_correct:
-                        score += 1
-                        feedback_text = "correct decision bro +1 matei's"
-                        feedback_colour = (80,240,120)
-                    else:
-                        strikes += 1
-                        if not valid_doc:
-                            feedback_text = f"wrong bro, that was a f*#$@ing {current_alien.doc_type}"
-                        else:
-                            feedback_text = "wrong decision bro, you suck"
-                        feedback_colour = (240, 70,90)
-                    feedback_timer = 1.8
-                    passport_is_opened = False
-                    dragging_passport = False
-
-                    if strikes > 3:
-                        game_state = "GAME OVER"
-                    else:
-                        current_alien,current_rule, alien_dialogue = build_alien_encounter()
-                        active_reply = ""
-                        start_turn_animation()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     rules_is_opened = not rules_is_opened
 
-                if event.key == pygame.K_p:
+                if event.key == pygame.K_p and doc_visible:
                     passport_is_opened = not passport_is_opened
                     dragging_passport = False
 
@@ -252,10 +246,10 @@ while running:
                     dragging_passport = False
 
                 if event.key == pygame.K_SPACE:
-                    current_alien = Alien()
-                    current_rule = generate_rules()["RULE"]
+                    current_alien, current_rule, alien_dialogue = build_alien_encounter()
                     passport_is_opened = False
                     dragging_passport = False
+                    start_turn_animation()
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
 
@@ -293,34 +287,11 @@ while running:
                 if question_purpose_button.clicking(event):
                     active_reply = alien_dialogue["purpose"]
 
-                #checking da decision on approve or deny
                 if approve_button.clicking(event) or deny_button.clicking(event):
-                    player_approval = approve_button.clicking(event)
                     stamp_decision = approve_button.clicking(event)
                     animation_state = "STAMPING"
+                    stamp_timer = 0.0
                     dragging_passport = False
-
-                    real_valid = check_decision(current_alien, current_rule, True) and not alien_dialogue["is_lying"]
-                    is_correct = (player_approval == real_valid)
-
-                    if is_correct:
-                        score += 1
-                        feedback_text = "APPROVED / DENIED CORRECTLY! +1(nice job bro)"
-                        feedback_colour = (80,240,120)
-                    else:
-                        strikes += 1
-                        feedback_text = "WRONG DECISION! (dumbass)"
-                        feedback_colour = (240,70,90)
-
-                    feedback_timer = 1.6
-                    passport_is_opened = False
-                    dragging_passport = False
-
-                    if strikes >= 3:
-                        game_state = "GAME_OVER"
-                    else:
-                        current_alien, current_rule,alien_dialogue = build_alien_encounter()
-                        active_reply = ""
 
     #BACKGROUND
     screen.fill((58,68,88))
@@ -364,6 +335,52 @@ while running:
 
     elif game_state == "PLAYING":
 
+        if animation_state == "ENTERING":
+            alien_y += (275.0-alien_y) * 9.0 * dt
+            if abs (alien_y- 275.0) < 2.0:
+                alien_y = 275.0
+                animation_state = "TOSSING"
+                doc_visible = "True"
+        elif animation_state == "TOSSING":
+            doc_x += (185.0 - doc_x) * 8.5 * dt
+            doc_y += (585.0 - doc_y) * 8.5 * dt
+            doc_angle += 900 * dt
+            if abs(doc_x - 185.0) < 3.0 and abs(doc_y - 585.0) < 3.0:
+                doc_x,doc_y = 185.0,585.0
+                doc_angle = doc_target_angle
+                animation_state = "WAITING"
+        elif animation_state =="STAMPING":
+            stamp_timer += dt
+            if stamp_timer >= 0.22 and stamped_ink is None:
+                stamped_ink = "APPROVED" if stamp_decision else "DENIED"
+                shake_timer = 0.14
+            if stamp_timer > 0.75:
+                valid_doc = (current_alien.doc_type == "PASSPORT")
+                real_valid = valid_doc and check_decision(current_alien,current_rule,True) and not alien_dialogue["is_lying"]
+                is_correct =(stamp_decision == real_valid)
+
+                if is_correct:
+                    score += 1
+                    feedback_text = "correct decision bro +1 matei's"
+                    feedback_colour = (80,240,120)
+                else:
+                    strikes += 1
+                    if not valid_doc:
+                        feedback_text = f"wrong bro, that was a f*#$@ing {current_alien.doc_type}"
+                    else:
+                        feedback_text = "wrong decision bro, you suck"
+                    feedback_colour = (240, 70,90)
+                feedback_timer = 1.8
+                passport_is_opened = False
+                dragging_passport = False
+
+                if strikes > 3:
+                    game_state = "GAME OVER"
+                else:
+                    current_alien,current_rule, alien_dialogue = build_alien_encounter()
+                    active_reply = ""
+                    start_turn_animation()
+    
         #centeh window
         booth_rect = pygame.Rect(415,35,450,425)
         pixel_8_bit_border(screen, booth_rect, (28,34,46), (35,42,56), notch = 8, border = 8)
@@ -474,6 +491,20 @@ while running:
 
             mini_photo = pygame.transform.scale(alien_img, (96,96))
             passport_surface.blit(mini_photo, (22,68))
+
+            doc_titles = {
+                "PASSPORT": ("GALACTIC PASSPORT", (240,210,60)),
+                "ID CARD": ("PLANETARY ID",(120,200,255)),
+                "STUDENT ID":("GALACTIC STUDENT ID", (255,140,150)),
+            }
+            header_string,header_colon = doc_titles[current_alien.doc_type]
+            title_text = font.render(header_string, True, header_colon)
+            passport_surface.blit(title_text, (85,10))
+            passport_surface.blit(small_font.render(f"DOCUMENT ID: #{current_alien.doc_id}", True, (30,34,42)), (270,86))
+
+            if stamped_ink is not None:
+                ink_image = ink_approved_image if stamped_ink == "APPROVED" else ink_denied_image
+                passport_surface.blit(ink_image, (185, 225))
 
             passport_surface.blit(small_font.render("CLASS : TRANSIT", True, (30,34,42)), (270,66))
             passport_surface.blit(small_font.render("DOCUMENT ID: #13565", True, (30,34,42)), (270,86))
