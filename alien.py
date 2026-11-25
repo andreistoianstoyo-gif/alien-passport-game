@@ -13,6 +13,10 @@ class Alien:
         s.limbs = correct_traits["limbs"]
         s.expiration_date = random.randint(2026, 2040)
 
+        s.doc_type = random.choice(
+            ["PASSPORT", "ID CARD", "STUDENT ID"],
+        )[0]
+
         #45% chance to be an anomaly
         if random.random() < 0.45:
             anomaly = random.choice(["expiration_date","eyes","colour"])
@@ -24,3 +28,6 @@ class Alien:
                 s.colour = "orange"
 
         s.passport = Document(s.name, s.claimed_planet, s.expiration_date, s.limbs)
+
+
+

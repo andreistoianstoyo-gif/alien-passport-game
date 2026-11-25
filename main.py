@@ -66,6 +66,9 @@ lobby_button = PixelButton(660,460,260,80, "LOBBY", font,(230,180,40),(250,205,7
 
 def build_alien_encounter():
     alien = Alien()
+    alien.doc_type = random.choices(["PASSPORT","ID CARD", "STUDENT ID"], weights=[75,15,10])[0]
+    alien.doc_id = random.randint(10000,999999)
+
     rule = generate_rules()["RULE"]
     planets = list(PLANET_SPECIES.keys())
 
@@ -91,23 +94,49 @@ def build_alien_encounter():
         "is_lying": lies,
     }
     return alien, rule, dialogue
+#juicy animations
+animation_state = "ENTERING"
+alien_y = 600.0
+doc_x, doc_y = 640.0,390.0
+doc_angle = 0.0
+doc_target_angle = 0.0
+doc_visible = False
+
+stamp_timer = 0.0
+stamp_decision = True
+stamped_ink = None
+shake_timer = 0.0
+
+def start_turn_animation():
+    global animation_state, alien_y,doc_x,doc_y,doc_angle,doc_target_angle,doc_visible,stamp_timer,stamped_ink
+    animation_state = "ENTERING"
+    alien_y = 600.0
+    doc_x, doc_y = 640.0,390.0
+    doc_angle = 0.0
+    doc_target_angle = random.uniform(-16.0,16.0)
+    doc_visible = False
+    stamp_timer = 0.0
+    stamped_ink = None
+
 
 def reset_game():
     alien,rule,dialogue = build_alien_encounter()
     return alien,rule,dialogue, 0, 0, "", "white",0.0,""
 
+def load_or_fallback(path,size,draw_fn):
+    
 #game state 
 game_state = "LOBBY"
 current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
 
 #state of the game
-current_alien = Alien()
-current_rule = generate_rules()["RULE"]
-score = 0
-strikes = 0
-feedback_text = ""
-feedback_colour = "white"
-feedback_timer = 0.0
+#current_alien = Alien()
+#current_rule = generate_rules()["RULE"]
+#score = 0
+#strikes = 0
+#feedback_text = ""
+#feedback_colour = "white"
+#feedback_timer = 0.0
 
 #ui windows settings
 passport_is_opened = False
@@ -164,6 +193,51 @@ while running:
 
         #playing eveniments(yayy)
         elif game_state == "PLAYING":
+            if animation_state == "ENTERING":
+                alien_y += (275.0-alien_y) * 9.0 * dt
+                if abs (alien_y- 275.0) < 2.0:
+                    alien_y = 275.0
+                    animation_state = "TOSSING"
+                    doc_visible = "True"
+            elif animation_state == "TOSSING":
+                doc_x += (185.0 - doc_x) * 8.5 * dt
+                doc_y += (585.0 - doc_y) * 8.5 * dt
+                doc_angle += 900 * dt
+                if abs(doc_x - 185.0) < 3.0 and abs(doc_y - 585.0) < 3.0:
+                    doc_x,doc_y = 185.0,585.0
+                    doc_angle = doc_target_angle
+                    animation_state = "WAITING"
+            elif animation_state =="STAMPING":
+                stamp_timer += dt
+                if stamp_timer >= 0.22 and stamped_ink is None:
+                    stamped_ink = "APPROVED" if stamp_decision else "DENIED"
+                    shake_timer = 0.14
+                if stamp_timer > 0.75:
+                    valid_doc = (current_alien.doc_type == "PASSPORT")
+                    real_valid = valid_doc and check_decision(current_alien,current_rule,True) and not alien_dialogue["is_lying"]
+                    is_correct =(stamp_decision == real_valid)
+
+                    if is_correct:
+                        score += 1
+                        feedback_text = "correct decision bro +1 matei's"
+                        feedback_colour = (80,240,120)
+                    else:
+                        strikes += 1
+                        if not valid_doc:
+                            feedback_text = f"wrong bro, that was a f*#$@ing {current_alien.doc_type}"
+                        else:
+                            feedback_text = "wrong decision bro, you suck"
+                        feedback_colour = (240, 70,90)
+                    feedback_timer = 1.8
+                    passport_is_opened = False
+                    dragging_passport = False
+
+                    if strikes > 3:
+                        game_state = "GAME OVER"
+                    else:
+                        current_alien,current_rule, alien_dialogue = build_alien_encounter()
+                        active_reply = ""
+                        start_turn_animation()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     rules_is_opened = not rules_is_opened
@@ -211,7 +285,7 @@ while running:
 
             #question buttons(question time hehe)
             clicking_on_passport = passport_is_opened and passport_rect.collidepoint(mouse_pos) if event.type == pygame.MOUSEBUTTONDOWN else False
-            if not clicking_on_passport:
+            if animation_state == "WAITING" and not clicking_on_passport:
                 if question_origin_button.clicking(event):
                     active_reply = alien_dialogue["origin"]
                 if question_limbs_button.clicking(event):
@@ -222,6 +296,9 @@ while running:
                 #checking da decision on approve or deny
                 if approve_button.clicking(event) or deny_button.clicking(event):
                     player_approval = approve_button.clicking(event)
+                    stamp_decision = approve_button.clicking(event)
+                    animation_state = "STAMPING"
+                    dragging_passport = False
 
                     real_valid = check_decision(current_alien, current_rule, True) and not alien_dialogue["is_lying"]
                     is_correct = (player_approval == real_valid)
@@ -293,7 +370,7 @@ while running:
         pygame.draw.line(screen, (42,50,66), (450,70), (520,140), 4)
         pygame.draw.line(screen, (42,50,66), (475,70), (535,130), 2)
 
-        alien_booth_rect = big_alien_image.get_rect(center=(640,275))
+        alien_booth_rect = big_alien_image.get_rect(center=(640,int(alien_y)))
         screen.blit(big_alien_image,alien_booth_rect)
 
         #bubble dialogues
@@ -311,8 +388,12 @@ while running:
             pygame.draw.rect(screen, (35,40,45),(bolts, 465,6,6))
 
         #passport on the table
-        hovering = -5 if mini_passport_rect.collidepoint(mouse_pos) else 0
-        screen.blit(cover_image, (mini_passport_rect.x, mini_passport_rect.y + hovering))
+        active_cover = DOC_COVERS[current_alien.doc_type]
+        if doc_visible:
+            rotated_doc = pygame.transform.rotate(active_cover, doc_angle)
+            mini_passport_rect = rotated_doc.get_rect(center = (int(doc_x), int(doc_y)))
+            hovering = -5 if mini_passport_rect.collidepoint(mouse_pos) else 0
+            screen.blit(cover_image, (mini_passport_rect.x, mini_passport_rect.y + hovering))
 
         #approve/deny buttohs
         question_origin_button.draw(screen,mouse_pos,mouse_pressed_true)

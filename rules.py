@@ -17,6 +17,7 @@ def generate_rules():
     }
 
 def check_decision(alien,active_rule,player_approval):
+    
     expect = PLANET_SPECIES[alien.passport.planet]
     is_check = True
 
