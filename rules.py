@@ -1,6 +1,6 @@
 import random
 from alien import Alien
-from species_data import PLANET_SPECIES
+from species_data import PLANETS_SPECIES
 
 #random rule generator
 RULE = [
@@ -30,7 +30,7 @@ def evaluate_encounter(alien: Alien, active_rule: str, dialogue: dict):
     if alien.passport.planet != alien.claimed_planet:
         return False, f"Wrong! Passport planet doesn't match!"
 
-    expect = PLANET_SPECIES[alien.passport.planet]
+    expect = PLANETS_SPECIES[alien.passport.planet]
 
     if active_rule == "Check the passport expiration date":
         if alien.passport.is_expired():
@@ -64,5 +64,5 @@ def evaluate_encounter(alien: Alien, active_rule: str, dialogue: dict):
     return True, ""
 
 def check_decision(alien:Alien, active_rule:str , player_approval: bool):
-    is_valid = evaluate_encounter(alien, active_rule, {"is_lying":False})
+    is_valid, _ = evaluate_encounter(alien, active_rule, {"is_lying":False})
     return player_approval == is_valid

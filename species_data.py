@@ -1,9 +1,9 @@
 import random
 
 FIRST_NAMES = [
-    "Zyx", "Pip", "Bloop", "Gorgon", "Vela", "Beene","Krag", "Vex", "Nyx", "Nory"
-    "Zorp", "Quix", "Tlop", "Tali", "Morb", "Florp", "Drax", "Styla", "Rix", "Kale", "Lavi"
-    "Olo", "Mori", "Kael", "Klarp", "Bris", "Plip", "Tke", "Xeno", "Vornak", "Luma", "Plorb"
+    "Zyx", "Pip", "Bloop", "Gorgon", "Vela", "Beene","Krag", "Vex", "Nyx", "Nory",
+    "Zorp", "Quix", "Tlop", "Tali", "Morb", "Florp", "Drax", "Styla", "Rix", "Kale", "Lavi",
+    "Olo", "Mori", "Kael", "Klarp", "Bris", "Plip", "Tke", "Xeno", "Vornak", "Luma", "Plorb",
     "Jole", "Gar",
 ]
 
@@ -21,7 +21,7 @@ PLANETS = ["Mars", "Zorgon", "Volor", "Darolan", "Titan", "Pluto", "Alpha-Qent",
 
 PLANETS_SPECIES = {
     "Mars": {"eyes":2, "colour":"green", "limbs":4, "head":"round", "accessory":"antennae"},
-    "Zorgon":{"eyes":2, "colour":"purple", "limbs":6, "head":"sqare", "accessory":"horns"},
+    "Zorgon":{"eyes":2, "colour":"purple", "limbs":6, "head":"square", "accessory":"horns"},
     "Volor":{"eyes":1, "colour":"orange", "limbs":2, "head":"pear", "accessory":"crest"},
     "Darolan":{"eyes":6, "colour":"yellow", "limbs":2, "head":"wide", "accessory":"ears"},
     "Titan":{"eyes":2, "colour":"red", "limbs":8, "head":"oval", "accessory":"horns"},
@@ -39,7 +39,7 @@ CUSTOM_COLOURS = {
     "red":(220,70,75),
     "orange":(240,130,50),
     "pink":(255, 105, 180),
-    
+
 }
 
 def generate_alien_name():

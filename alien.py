@@ -11,16 +11,16 @@ class Alien:
         s.name = generate_alien_name()
         s.claimed_planet = random.choice(PLANETS)
 
-        correct_traits = PLANETS_SPECIES(s.claimed_planet)
+        correct_traits = PLANETS_SPECIES[s.claimed_planet]
         s.eyes = correct_traits["eyes"]
         s.limbs = correct_traits["limbs"]
         s.colour = correct_traits["colour"]
         s.head = correct_traits["head", "round"]
-        s.accessory = correct_traits["accessory", "antennae"]
+        s.accessory = correct_traits("accessory", "antennae")
         s.mouth = random.choice(MOUTHS)
         s.expiration_date = random.randint (2027, 2040)
 
-        s.doc_type = random.choice(
+        s.doc_type = random.choices(
             ["PASSPORT", "ID CARD", "STUDENT ID"],
             weights = [75,15,10],
         )[0]

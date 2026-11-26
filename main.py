@@ -576,8 +576,8 @@ while running:
         if bestiary_scale > 0.05:
             BESTIARY_WIDTH, BESTIARY_HEIGHT = 330,480
             bestiary_surface = pygame.Surface((BESTIARY_WIDTH + 14, BESTIARY_HEIGHT + 14), pygame.SRCALPHA)
-            pixel_8_bit_border(bestiary_surface, pygame.rect(10,10,BESTIARY_WIDTH,BESTIARY_HEIGHT), (14,16,14),(14,16,14) , notch = 8, border = 8)
-            pixel_8_bit_border(bestiary_surface, pygame.rect(0,0,BESTIARY_WIDTH,BESTIARY_HEIGHT), (14,16,14),(14,16,14) , notch = 8, border = 8)
+            pixel_8_bit_border(bestiary_surface, pygame.Rect(10,10,BESTIARY_WIDTH,BESTIARY_HEIGHT), (14,16,14),(14,16,14) , notch = 8, border = 8)
+            pixel_8_bit_border(bestiary_surface, pygame.Rect(0,0,BESTIARY_WIDTH,BESTIARY_HEIGHT), (14,16,14),(14,16,14) , notch = 8, border = 8)
 
             bestiary_title = rule_font.render("GALACTIC BESTIARY", True, (240,210,60))
             bestiary_surface.blit(bestiary_title, bestiary_title.get_rect(centerx = BESTIARY_WIDTH // 2, y = 18))
@@ -600,20 +600,20 @@ while running:
                 bestiary_surface.blit(planet_surface, (114, card_y + 14))
 
                 bestiary_surface.blit(
-                    field_font.render(f"EYES: {traits['eyes']}", True, (230,235,245))
-                    (114, card_y + 48)
+                    field_font.render(f"EYES: {traits['eyes']}", True, (230,235,245)),
+                    (114, card_y + 48),
                 )
                 bestiary_surface.blit(
-                    field_font.render(f"COLOUR: {traits['colour'].upper()}", True, (230,235,245))
-                    (114, card_y + 74)              
+                    field_font.render(f"COLOUR: {traits['colour'].upper()}", True, (230,235,245)),
+                    (114, card_y + 74),         
                 )
                 bestiary_surface.blit(
-                field_font.render(f"LIMBS: {traits['limbs']}", True, (230,235,245))
-                (114, card_y + 10)              
+                field_font.render(f"LIMBS: {traits['limbs']}", True, (230,235,245)),
+                (114, card_y + 100),              
                 )
                 bestiary_surface.blit(
-                field_font.render(f"TRAIT: {traits.get['accessory','none'].upper()}", True, (230,235,245))
-                (114, card_y + 126)              
+                field_font.render(f"TRAIT: {traits.get['accessory','none'].upper()}", True, (230,235,245)),
+                (114, card_y + 126),              
                 )
 
             page_surface = small_font.render(f"PAGE {bestiary_page + 1}/{total_bestiary_pages}",True, (230,235,245))
@@ -621,7 +621,7 @@ while running:
 
             scaled_bestiary_width = max(1,int((BESTIARY_WIDTH + 14)*bestiary_scale))
             scaled_bestiary_height = max(1,int((BESTIARY_HEIGHT + 14)*bestiary_scale))
-            scaled_bestiary = pygame.transfoorm.scale(bestiary_surface, (scaled_bestiary_width, scaled_bestiary_height))
+            scaled_bestiary = pygame.transform.scale(bestiary_surface, (scaled_bestiary_width, scaled_bestiary_height))
             bestiary_rect = scaled_bestiary.get_rect(topright = (1250,30))
             screen.blit(scaled_bestiary, bestiary_rect)
 
