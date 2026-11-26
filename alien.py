@@ -11,23 +11,22 @@ class Alien:
         s.eyes = correct_traits["eyes"]
         s.colour = correct_traits["colour"]
         s.limbs = correct_traits["limbs"]
-        s.expiration_date = random.randint(2026, 2040)
+        s.expiration_date = random.randint(2027, 2040)
 
         s.doc_type = random.choice(
             ["PASSPORT", "ID CARD", "STUDENT ID"],
         )[0]
         s.doc_id = random.randint(10000,999999)
+
+        passport_limbs = s.limbs
+
         #45% chance to be an anomaly
         if random.random() < 0.45:
-            anomaly = random.choice(["expiration_date","eyes","colour"])
+            anomaly = random.choice(["expiration_date","limbs"])
             if anomaly == "expiration_date":
                 s.expiration_date = random.randint(2022,2025)
-            elif anomaly == "eyes":
-                s.eyes += 1
-            elif anomaly == "colour":
-                s.colour = "orange"
+            elif anomaly == "limbs":
+                other_limbs = [n for n in [2,4,6,8] if n != correct_traits["limbs"]]
+                passport_limbs = random.choice(other_limbs)
 
-        s.passport = Document(s.name, s.claimed_planet, s.expiration_date, s.limbs)
-
-
-
+        s.passport = Document(s.name, s.claimed_planet, s.expiration_date, passport_limbs)
