@@ -15,8 +15,8 @@ class Alien:
         s.eyes = correct_traits["eyes"]
         s.limbs = correct_traits["limbs"]
         s.colour = correct_traits["colour"]
-        s.head = correct_traits["head", "round"]
-        s.accessory = correct_traits("accessory", "antennae")
+        s.head = correct_traits.get("head", "round")
+        s.accessory = correct_traits.get("accessory", "antennae")
         s.mouth = random.choice(MOUTHS)
         s.expiration_date = random.randint (2027, 2040)
 
