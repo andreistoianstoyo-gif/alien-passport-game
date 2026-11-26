@@ -47,3 +47,6 @@ class Alien:
                 s.colour = random.choice(other_colour)
 
         s.passport = Document(s.name, s.claimed_planet, s.expiration_date, passport_limbs)
+
+    booth_sprite = None
+    photo_sprite = None

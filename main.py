@@ -1,9 +1,15 @@
 import pygame
 import random
+import math
 from alien import Alien
 from rules import generate_rules,evaluate_encounter
-from species_data import PLANET_SPECIES
 from ui import PixelButton, pixel_8_bit_border, not_unbound_text
+from alien_renderer import render_species_preview, render_alien_sprite
+
+try:
+    from species_data import PLANETS_SPECIES
+except ImportError:
+    from species_data import PLANETS_SPECIES as PLANET_SPECIES
 
 pygame.init()
 LENGTH, HEIGHT = 1280,720
@@ -21,10 +27,6 @@ field_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf",
 passport_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf",14)
 
 #da sprites
-alien_img = pygame.image.load("assets/sprites/alien.png").convert_alpha()
-alien_img = pygame.transform.scale(alien_img, (192,192))
-big_alien_image = pygame.transform.scale(alien_img, (256,256))
-
 raw_passport = pygame.image.load("assets/sprites/passport.png").convert_alpha()
 passport_image = pygame.transform.scale_by(raw_passport, 3)
 passport_shadow_image = pygame.mask.from_surface(passport_image).to_surface(
@@ -74,6 +76,14 @@ def _draw_stamp_fallback(self):
     pygame.draw.rect(self, (45,50,62), (6,42,60,24), border_radius=4)
     pygame.draw.rect(self, (200,50,60), (10,60,52,8))
 
+def _draw_bestiary_icon_fallback(surface):
+    pixel_8_bit_border(surface, pygame.Rect(10,8,86,104), (92,46,125),(38,18,25),notch = 4, border = 4)
+    pygame.draw.rect(surface, (55,24,80), (10,8,14,104))
+    pygame.draw.rect(surface,(240,200,50), (34,24,44,34),3)
+    pygame.draw.circle(surface,(120,235,140), (56,41), 9)
+    label = passport_font.render("[B] DEX", True, (240,210,60))
+    surface.blit(label, label.get_rect(center = (56,84)))
+
 def _make_ink_stamp(text,colour):
     surface = pygame.Surface((170,54),pygame.SRCALPHA)
     pygame.draw.rect(surface, colour, (2,2,166,50), 4, border_radius = 4)
@@ -98,6 +108,11 @@ DOC_COVERS = {
     "STUDENT ID": student_id_cover_image,
 }
 
+SPECIES_PREVIEWS = {
+    planet: render_species_preview(planet,(68,68))
+    for planet in PLANETS_SPECIES
+}
+
 #buttuhs
 approve_button = PixelButton(300,605,270,90,"APPROVE", big_font, (0,200,0),(50,240,100), (0,100,32))
 deny_button = PixelButton(700,605,280,90, "DENY", big_font, (200,0,0), (240,50,100), (100,0,32))
@@ -105,6 +120,9 @@ deny_button = PixelButton(700,605,280,90, "DENY", big_font, (200,0,0), (240,50,1
 question_origin_button = PixelButton(300,500,215,50, "[1] ORIGIN?", small_font, (70,82,105),(95,112,142),(30,36,48))
 question_limbs_button = PixelButton(532, 500,215,50, "[2] LIMBS?", small_font, (70,82,105),(95,112,142),(30,36,48))
 question_purpose_button = PixelButton(765, 500,215,50, "[3] PURPOSE?", small_font,(70,82,105),(95,112,142),(30,36,48))
+
+bestiary_previous_button = PixelButton(935,455,65,38, "<", small_font, (125,75,165), (155,95,200), (45,22,65))
+bestiary_next_button = PixelButton(1165,455,65,38, "<", small_font, (125,75,165), (155,95,200), (45,22,65))
 
 play_button = PixelButton(490, 310, 300, 80, "PLAY", big_font, (0,200,0),(50,240,100),(0,100,32))
 settings_button = PixelButton(490,415,300,80, "SETTINGS", big_font, (230,180,40),(205,205,75),(120,90,15))
@@ -118,10 +136,10 @@ lobby_button = PixelButton(660,460,260,80, "LOBBY", font,(230,180,40),(250,205,7
 
 def build_alien_encounter():
     alien = Alien()
-    alien.doc_type = random.choices(["PASSPORT","ID CARD", "STUDENT ID"], weights=[75,15,10])[0]
-    alien.doc_id = random.randint(10000,999999)
+    alien.booth_sprite = render_alien_sprite(alien, (256,256))
+    alien.photo_sprite = render_alien_sprite(alien, (96, 96))
 
-    planets = list(PLANET_SPECIES.keys())
+    planets = list(PLANETS_SPECIES.keys())
 
     lies = random.random() < 0.25
     spoken_planet = alien.passport.planet
@@ -187,7 +205,10 @@ game_state = "LOBBY"
 day = 1
 aliens_today = 0
 game_over_reason = ""
+bestiary_page = 0
+SPECIES_PER_PAGE = 2
 current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
+lobby_prevew_alien = current_alien.photo_sprite
 
 #ui windows settings
 passport_is_opened = False
@@ -198,11 +219,17 @@ drag_offset = (0,0)
 rules_is_opened = False
 rules_scale = 0.0
 
+bestiary_is_open = False
+bestiary_scale = 0.0
+
 running = True
 while running:
     dt = clock.tick(60)/ 1000
     mouse_pos = pygame.mouse.get_pos()
     mouse_pressed_true = pygame.mouse.get_pressed()
+
+    species_items = list(PLANET_SPECIES.items())
+    total_bestiary_pages = max(1, math.ceil(len(species_items)/ SPECIES_PER_PAGE))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -214,6 +241,7 @@ while running:
                 current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
                 passport_is_opened = False
                 rules_is_opened = True
+                bestiary_is_open = False
                 game_state = "PLAYING"
             elif settings_button.clicking(event):
                 game_state = "SETTINGS"
@@ -238,6 +266,7 @@ while running:
                 current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
                 passport_is_opened = False
                 rules_is_opened = True
+                bestiary_is_open = False
                 game_state = "PLAYING"
             elif lobby_button.clicking(event):
                 game_state = "LOBBY"
@@ -247,6 +276,19 @@ while running:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     rules_is_opened = not rules_is_opened
+                    if rules_is_opened:
+                        bestiary_is_open = False
+                
+                if event.key == pygame.K_b:
+                    bestiary_is_open = not bestiary_is_open
+                    if bestiary_is_open:
+                        rules_is_opened = False
+
+                if bestiary_is_open:
+                    if event.key == pygame.K_LEFT:
+                        bestiary_page = (bestiary_page - 1) % total_bestiary_pages
+                    elif event.key == pygame.K_RIGHT:
+                        bestiary_page = (bestiary_page + 1) & total_bestiary_pages
 
                 if event.key == pygame.K_p and doc_visible:
                     passport_is_opened = not passport_is_opened
@@ -255,13 +297,8 @@ while running:
                 if event.key == pygame.K_ESCAPE:
                     passport_is_opened = False
                     rules_is_opened = False
+                    bestiary_is_open = False
                     dragging_passport = False
-
-                if event.key == pygame.K_SPACE:
-                    current_alien, alien_dialogue = build_alien_encounter()
-                    passport_is_opened = False
-                    dragging_passport = False
-                    start_turn_animation()
 
                 if animation_state == "WAITING":
                     if event.key == pygame.K_1:
