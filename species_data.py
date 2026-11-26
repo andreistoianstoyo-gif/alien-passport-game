@@ -31,6 +31,17 @@ PLANETS_SPECIES = {
     "Kira":{"eyes":4, "colour":"pink", "limbs":6, "head":"wide", "accessory":"crest"},
 }
 
+CUSTOM_COLOURS = {
+    "green": (72,205,98),
+    "purple":(165,85,225),
+    "blue":(70,150,240),
+    "yellow":(240,205,60),
+    "red":(220,70,75),
+    "orange":(240,130,50),
+    "pink":(255, 105, 180),
+    
+}
+
 def generate_alien_name():
     first_name = random.choice(FIRST_NAMES)
     last_name = random.choice(LAST_NAMES)
