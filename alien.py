@@ -27,6 +27,10 @@ class Alien:
                 s.expiration_date = random.randint(2022,2025)
             elif anomaly == "limbs":
                 other_limbs = [n for n in [2,4,6,8] if n != correct_traits["limbs"]]
-                passport_limbs = random.choice(other_limbs)
+                if random.random() < 0.5:
+                    passport_limbs = random.choice(other_limbs)
+                else:
+                    s.limbs = random.choice(other_limbs)
+                    passport_limbs = s.limbs
 
         s.passport = Document(s.name, s.claimed_planet, s.expiration_date, passport_limbs)

@@ -21,8 +21,14 @@ def evaluate_encounter(alien: Alien, active_rule: str, dialogue: dict):
     if alien.doc_type != "PASSPORT":
         return False, f"Wrong! Invalid doc type: {alien.doc_type} stupid ahh"
 
-    if dialogue["is lying"]:
+    if dialogue["is_lying"]:
         return False, "Wrong! The alien lied to you!"
+
+    if alien.passport.limbs != alien.limbs:
+        return False, f"Wrong! Passport says {alien.passport.limbs} limbs, alien has {alien.limbs}!"
+
+    if alien.passport.planet != alien.claimed_planet:
+        return False, f"Wrong! Passport planet doesn't match!"
 
     expect = PLANET_SPECIES[alien.passport.planet]
 

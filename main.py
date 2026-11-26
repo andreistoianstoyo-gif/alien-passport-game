@@ -1,7 +1,7 @@
 import pygame
 import random
 from alien import Alien
-from rules import generate_rules,check_decision
+from rules import generate_rules,evaluate_encounter
 from species_data import PLANET_SPECIES
 from ui import PixelButton, pixel_8_bit_border, not_unbound_text
 
@@ -103,8 +103,8 @@ approve_button = PixelButton(300,605,270,90,"APPROVE", big_font, (0,200,0),(50,2
 deny_button = PixelButton(700,605,280,90, "DENY", big_font, (200,0,0), (240,50,100), (100,0,32))
 
 question_origin_button = PixelButton(300,500,215,50, "[1] ORIGIN?", small_font, (70,82,105),(95,112,142),(30,36,48))
-question_limbs_button = PixelButton(532, 500,215,46, "[2] LIMBS?", small_font, (70,82,105),(95,112,142),(30,36,48))
-question_purpose_button = PixelButton(765, 500,215,46, "[3] PURPOSE?", small_font,(70,82,105),(95,112,142),(30,36,48))
+question_limbs_button = PixelButton(532, 500,215,50, "[2] LIMBS?", small_font, (70,82,105),(95,112,142),(30,36,48))
+question_purpose_button = PixelButton(765, 500,215,50, "[3] PURPOSE?", small_font,(70,82,105),(95,112,142),(30,36,48))
 
 play_button = PixelButton(490, 310, 300, 80, "PLAY", big_font, (0,200,0),(50,240,100),(0,100,32))
 settings_button = PixelButton(490,415,300,80, "SETTINGS", big_font, (230,180,40),(205,205,75),(120,90,15))
@@ -121,7 +121,6 @@ def build_alien_encounter():
     alien.doc_type = random.choices(["PASSPORT","ID CARD", "STUDENT ID"], weights=[75,15,10])[0]
     alien.doc_id = random.randint(10000,999999)
 
-    rule = generate_rules()["RULE"]
     planets = list(PLANET_SPECIES.keys())
 
     lies = random.random() < 0.25
@@ -138,7 +137,7 @@ def build_alien_encounter():
             other_limbs = [n for n in [2,4,6,8] if n != alien.limbs]
             spoken_limbs = random.choice(other_limbs)
         else:
-            purpose = "STEALING... uh, TOURISM!"
+            purpose = "to snatch some shi"
 
     dialogue = {
         "origin": f"I traveled from {spoken_planet}.",
@@ -146,7 +145,7 @@ def build_alien_encounter():
         "purpose": f"{purpose}",
         "is_lying": lies,
     }
-    return alien, rule, dialogue
+    return alien, dialogue
 #juicy animations
 animation_state = "ENTERING"
 alien_x = 960.0
@@ -174,15 +173,20 @@ def start_turn_animation():
     stamped_ink = None
 
 def reset_game():
-    global day,aliens_today
-    alien,rule,dialogue = build_alien_encounter()
+    global day,aliens_today, game_over_reason
+    alien,dialogue = build_alien_encounter()
+    rule = generate_rules()["RULE"]
     start_turn_animation()
     day = 1
     aliens_today = 0
+    game_over_reason = ""
     return alien,rule,dialogue, 0, 0, "", "white",0.0,""
 
 #game state 
 game_state = "LOBBY"
+day = 1
+aliens_today = 0
+game_over_reason = ""
 current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
 
 #ui windows settings
@@ -209,7 +213,7 @@ while running:
             if play_button.clicking(event):
                 current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
                 passport_is_opened = False
-                rules_is_opened = False
+                rules_is_opened = True
                 game_state = "PLAYING"
             elif settings_button.clicking(event):
                 game_state = "SETTINGS"
@@ -233,7 +237,7 @@ while running:
             if retry_button.clicking(event):
                 current_alien, current_rule, alien_dialogue, score, strikes, feedback_text,feedback_colour, feedback_timer, active_reply = reset_game()
                 passport_is_opened = False
-                rules_is_opened = False
+                rules_is_opened = True
                 game_state = "PLAYING"
             elif lobby_button.clicking(event):
                 game_state = "LOBBY"
@@ -254,10 +258,19 @@ while running:
                     dragging_passport = False
 
                 if event.key == pygame.K_SPACE:
-                    current_alien, current_rule, alien_dialogue = build_alien_encounter()
+                    current_alien, alien_dialogue = build_alien_encounter()
                     passport_is_opened = False
                     dragging_passport = False
                     start_turn_animation()
+
+                if animation_state == "WAITING":
+                    if event.key == pygame.K_1:
+                        active_reply = alien_dialogue["origin"]
+                    if event.key == pygame.K_2:
+                        active_reply = alien_dialogue["limbs"]
+                    if event.key == pygame.K_3:
+                        active_reply = alien_dialogue["purpose"]
+            
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
 
@@ -290,13 +303,17 @@ while running:
             if animation_state == "WAITING" and not clicking_on_passport:
                 if question_origin_button.clicking(event):
                     active_reply = alien_dialogue["origin"]
-                if question_limbs_button.clicking(event):
+                elif question_limbs_button.clicking(event):
                     active_reply = alien_dialogue["limbs"]
-                if question_purpose_button.clicking(event):
+                elif question_purpose_button.clicking(event):
                     active_reply = alien_dialogue["purpose"]
-
-                if approve_button.clicking(event) or deny_button.clicking(event):
-                    stamp_decision = approve_button.clicking(event)
+                elif approve_button.clicking(event):
+                    stamp_decision = True
+                    animation_state = "STAMPING"
+                    stamp_timer = 0.0
+                    dragging_passport = False
+                elif deny_button.clicking(event):
+                    stamp_decision = False
                     animation_state = "STAMPING"
                     stamp_timer = 0.0
                     dragging_passport = False
@@ -362,32 +379,30 @@ while running:
                 stamped_ink = "APPROVED" if stamp_decision else "DENIED"
                 shake_timer = 0.14
             if stamp_timer > 0.75:
-                valid_doc = (current_alien.doc_type == "PASSPORT")
-                real_valid = valid_doc and check_decision(current_alien,current_rule,True) and not alien_dialogue["is_lying"]
+                real_valid , fail_reason = evaluate_encounter(current_alien,current_rule,alien_dialogue)
                 is_correct =(stamp_decision == real_valid)
 
                 if is_correct:
                     score += 1
-                    feedback_text = "correct decision bro +1 matei's"
+                    feedback_text = "correct decision bro"
                     feedback_colour = (80,240,120)
                 else:
                     strikes += 1
-                    if not valid_doc:
-                        feedback_text = f"wrong bro, that was a f*#$@ing {current_alien.doc_type}"
-                    else:
-                        feedback_text = "wrong decision bro, you suck"
-                    feedback_colour = (240, 70,90)
-                aliens_today +=1
+                    feedback_text = fail_reason if fail_reason else "Wrong! That alien was actually valid!"
+                    feedback_colour = (240,70,90)
+
+                aliens_today += 1
                 if aliens_today >= 5:
-                    day+=1
-                    aliens_today =0
-                    feedback_text = f"DAY {day} HAS STARTED!"
+                    day += 1
+                    aliens_today = 0
+                    current_rule = generate_rules()["RULE"]
+                    rules_is_opened = True
+                    feedback_text = f"Day {day} has started! Check new rule!"
                     feedback_colour = (240,210,60)
-                
-                feedback_timer = 1.8
+
+                feedback_timer = 2.2
                 passport_is_opened = False
                 dragging_passport = False
-
 
                 if strikes >= 3:
                     game_over_reason = "3 STRIKES REACHED - you suck, everybody died bcus of you"
@@ -396,7 +411,7 @@ while running:
                     game_over_reason = "SHIFT COMPLETE! YOU SURVIVED ALL 7 DAYS!"
                     game_state = "GAME OVER"
                 else:
-                    current_alien,current_rule, alien_dialogue = build_alien_encounter()
+                    current_alien ,alien_dialogue = build_alien_encounter()
                     active_reply = ""
                     start_turn_animation()
     
@@ -488,7 +503,7 @@ while running:
             )
             not_unbound_text(
                 rules_surface,
-                f"RULE 2: Ask questions! Deny if anythin is mischevious.(bad aliens aren't allowed)!",
+                f"RULE 2: Ask questions! Deny if anything is mischievous or doc is not passport!",
                 rule_font,
                 "black",
                 pygame.Rect(0,0,RULES_WIDTH, RULES_HEIGHT),
@@ -600,7 +615,7 @@ while running:
         game_over_title = big_font.render("GAME OVER", True,(200,205,215))
         screen.blit(game_over_title, game_over_title.get_rect(centerx = 640, y = 185))
 
-        reason_surface = rule_font.render("3 STRIKES REACHED - you suck, everybody died bcus of you)", True,(200,205,215))
+        reason_surface = rule_font.render(game_over_reason, True,(200,205,215))
         screen.blit(reason_surface, reason_surface.get_rect(centerx = 640, y = 265))
 
         final_score_surface = big_font.render(f"FINAL SCORE: {score}", True, (240,210,60))
