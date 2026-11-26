@@ -98,6 +98,8 @@ id_card_cover_shadow = pygame.mask.from_surface(id_card_cover_open).to_surface(
 )
 student_id_cover_image = load_or_fallback("assets/sprites/student_id_cover.png", (108,144), _draw_student_fallback)
 stamp_tool_image = load_or_fallback("assets/sprites/stamp_tool.png", (72,74), _draw_stamp_fallback)
+bestiary_icon = load_or_fallback("assets/sprites/bestiary.png",(106,120), _draw_bestiary_icon_fallback)
+bestiary_icon_rect = bestiary_icon.get_rect(topright=(1258,195))
 
 ink_approved_image = _make_ink_stamp("APPROVED",(30,175,70))
 ink_denied_image = _make_ink_stamp("DENIED",(215,70,55))
@@ -311,6 +313,14 @@ while running:
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
 
+                if bestiary_is_open and bestiary_scale > 0.9:
+                    if bestiary_previous_button.clicking(event):
+                        bestiary_page = (bestiary_page - 1) % total_bestiary_pages
+                        continue
+                    elif bestiary_next_button.clicking(event):
+                        bestiary_page = (bestiary_page + 1) % total_bestiary_pages
+                        continue
+
                 if passport_is_opened and passport_scale > 0.9:
                     close_button_rect = pygame.Rect(passport_rect.right - 45, passport_rect.y + 10,34,34)
                     title_bar_rect = pygame.Rect(passport_rect.x, passport_rect.y, passport_rect.width - 50, 54)
@@ -323,7 +333,13 @@ while running:
                         drag_offset = (passport_rect.x - event.pos[0],passport_rect.y - event.pos[1])
                 elif rules_icon_rect.collidepoint(event.pos):
                     rules_is_opened = not rules_is_opened
-                elif mini_passport_rect.collidepoint(event.pos):
+                    if rules_is_opened:
+                        bestiary_is_open = False
+                elif bestiary_icon_rect.collidepoint(event.pos):
+                    bestiary_is_open = not bestiary_is_open
+                    if bestiary_is_open:
+                        rules_is_opened = False
+                elif doc_visible and mini_passport_rect.collidepoint(event.pos):
                     passport_is_opened = not passport_is_opened
                     dragging_passport = False
 
@@ -369,7 +385,7 @@ while running:
         subtitle_surf = small_font.render("GALACTIC BORDER CONTROL", True, (180,190,210))
         screen.blit(subtitle_surf, subtitle_surf.get_rect(centerx = 640, y = 185))
 
-        mini_lobby_preview_alien = pygame . transform.scale(alien_img, (84,84))
+        mini_lobby_preview_alien = pygame . transform.scale(lobby_prevew_alien, (84,84))
         screen.blit (mini_lobby_preview_alien, mini_lobby_preview_alien.get_rect(centerx = 640, y = 215))
 
         play_button.draw(screen,mouse_pos,mouse_pressed_true)
@@ -460,8 +476,8 @@ while running:
 
         screen.set_clip(booth_rect.inflate(-16,16))
         walk_bob = abs((alien_x - 640.0)% 44 -22) * 0.3 if animation_state == "ENTERING" else 0
-        alien_booth_rect = big_alien_image.get_rect(center = (int(alien_x),int(275 - walk_bob)))
-        screen.blit(big_alien_image, alien_booth_rect)
+        alien_booth_rect = current_alien.booth_sprite.get_rect(center = (int(alien_x),int(275 - walk_bob)))
+        screen.blit(current_alien.booth_sprite, alien_booth_rect)
         screen.set_clip(None)
 
         #bubble dialogues
@@ -553,6 +569,67 @@ while running:
             scaled_rect = scaled_panel.get_rect(topright=(1250,30))
             screen.blit(scaled_panel,scaled_rect)
 
+        #GALACTIC BESTIARY WINDOW
+        target_bestiary_scale = 1.0 if bestiary_is_open else 0.0
+        bestiary_scale += (target_bestiary_scale - bestiary_scale) * 20 * dt
+
+        if bestiary_scale > 0.05:
+            BESTIARY_WIDTH, BESTIARY_HEIGHT = 330,480
+            bestiary_surface = pygame.Surface((BESTIARY_WIDTH + 14, BESTIARY_HEIGHT + 14), pygame.SRCALPHA)
+            pixel_8_bit_border(bestiary_surface, pygame.rect(10,10,BESTIARY_WIDTH,BESTIARY_HEIGHT), (14,16,14),(14,16,14) , notch = 8, border = 8)
+            pixel_8_bit_border(bestiary_surface, pygame.rect(0,0,BESTIARY_WIDTH,BESTIARY_HEIGHT), (14,16,14),(14,16,14) , notch = 8, border = 8)
+
+            bestiary_title = rule_font.render("GALACTIC BESTIARY", True, (240,210,60))
+            bestiary_surface.blit(bestiary_title, bestiary_title.get_rect(centerx = BESTIARY_WIDTH // 2, y = 18))
+            pygame.draw.line(bestiary_surface,(220,195,55), (20,52), (BESTIARY_WIDTH - 20,52), 3)
+
+            start_idk = bestiary_page * SPECIES_PER_PAGE
+            page_entries = species_items[start_idk:start_idk + SPECIES_PER_PAGE]
+
+            for i, (planet_name,traits) in enumerate(page_entries):
+                card_y = 68 + i * 472
+                card_rect = pygame.Rect(18,card_y, BESTIARY_WIDTH - 36, 158)
+                pixel_8_bit_border(bestiary_surface, card_rect, (28,22,42),(125,85,175),notch = 4, border = 4)
+
+                preview_box = pygame.Rect(28,card_y + 20, 76,76)
+                pygame.draw.rect(bestiary_surface,(18,22,32),preview_box)
+                pygame.draw.rect(bestiary_surface, (235,195,55), preview_box, 2)
+                bestiary_surface.blit(SPECIES_PREVIEWS[planet_name], (32,card_y + 24))
+
+                planet_surface = rule_font.render(planet_name.upper(), True, (240,210,60))
+                bestiary_surface.blit(planet_surface, (114, card_y + 14))
+
+                bestiary_surface.blit(
+                    field_font.render(f"EYES: {traits['eyes']}", True, (230,235,245))
+                    (114, card_y + 48)
+                )
+                bestiary_surface.blit(
+                    field_font.render(f"COLOUR: {traits['colour'].upper()}", True, (230,235,245))
+                    (114, card_y + 74)              
+                )
+                bestiary_surface.blit(
+                field_font.render(f"LIMBS: {traits['limbs']}", True, (230,235,245))
+                (114, card_y + 10)              
+                )
+                bestiary_surface.blit(
+                field_font.render(f"TRAIT: {traits.get['accessory','none'].upper()}", True, (230,235,245))
+                (114, card_y + 126)              
+                )
+
+            page_surface = small_font.render(f"PAGE {bestiary_page + 1}/{total_bestiary_pages}",True, (230,235,245))
+            bestiary_surface.blit(page_surface, page_surface.get_rect(centerx = BESTIARY_WIDTH // 2, y = BESTIARY_HEIGHT - 44))
+
+            scaled_bestiary_width = max(1,int((BESTIARY_WIDTH + 14)*bestiary_scale))
+            scaled_bestiary_height = max(1,int((BESTIARY_HEIGHT + 14)*bestiary_scale))
+            scaled_bestiary = pygame.transfoorm.scale(bestiary_surface, (scaled_bestiary_width, scaled_bestiary_height))
+            bestiary_rect = scaled_bestiary.get_rect(topright = (1250,30))
+            screen.blit(scaled_bestiary, bestiary_rect)
+
+            if bestiary_scale > 0.5:
+                bestiary_previous_button.draw(screen,mouse_pos, mouse_pressed_true)
+                bestiary_next_button.draw(screen,mouse_pos, mouse_pressed_true)
+
+
         #PASSPORTTTTTTT
         target_idk_scale = 1.0 if passport_is_opened else 0.0
         passport_scale += (target_idk_scale - passport_scale) * 20 * dt
@@ -568,7 +645,7 @@ while running:
             passport_surface.blit(active_shadow, (10,10))
             passport_surface.blit(active_background, (0,0))
 
-            mini_photo = pygame.transform.scale(alien_img, (96,96))
+            mini_photo = current_alien.photo_sprite
             if is_id_card:
                 title_text = rule_font.render("PLANETARY ID", True, (120,200,255))
                 passport_surface.blit(title_text,(120,5))

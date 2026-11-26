@@ -48,5 +48,5 @@ class Alien:
 
         s.passport = Document(s.name, s.claimed_planet, s.expiration_date, passport_limbs)
 
-    booth_sprite = None
-    photo_sprite = None
+        s.booth_sprite = None
+        s.photo_sprite = None
