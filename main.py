@@ -20,12 +20,12 @@ clock = pygame.time.Clock()
 is_fullscreen = False
 
 # the fonts duh
-font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf", 28)
-big_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf", 40)
-rule_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf", 24)
-small_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf", 18)
-field_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf", 16)
-passport_font = pygame.font.Font("assets/fonts/PixelifySans-VariableFont_wght.ttf", 14)
+font = pygame.font.Font("assets/fonts/PixelifySans-Regular.ttf", 28)
+big_font = pygame.font.Font("assets/fonts/PixelifySans-Regular.ttf", 40)
+rule_font = pygame.font.Font("assets/fonts/PixelifySans-Regular.ttf", 24)
+small_font = pygame.font.Font("assets/fonts/PixelifySans-Regular.ttf", 18)
+field_font = pygame.font.Font("assets/fonts/PixelifySans-Regular.ttf", 16)
+passport_font = pygame.font.Font("assets/fonts/PixelifySans-Regular.ttf", 14)
 
 # da sprites
 raw_passport = pygame.image.load("assets/sprites/passport.png").convert_alpha()
@@ -251,6 +251,7 @@ async def main():
 
     running = True
     while running:
+        target_fps = 30 if sys.platform == "emscripten" else 60
         dt = clock.tick(60) / 1000
         mouse_pos = pygame.mouse.get_pos()
         mouse_pressed_true = pygame.mouse.get_pressed()
@@ -565,6 +566,8 @@ async def main():
             # daily rules things
             target_scale = 1.0 if rules_is_opened else 0.0
             rules_scale += (target_scale - rules_scale) * 20 * dt
+            if abs(target_scale - rules_scale) < 0.01:
+                rules_scale = target_scale
 
             if rules_scale > 0.05:
                 RULES_WIDTH, RULES_HEIGHT = 290, 480
@@ -599,15 +602,19 @@ async def main():
                     195,
                 )
 
-                NEW_WIDTH = max(1, int(RULES_WIDTH * rules_scale))
-                NEW_HEIGHT = max(1, int(RULES_HEIGHT * rules_scale))
-                scaled_panel = pygame.transform.scale(rules_surface, (NEW_WIDTH, NEW_HEIGHT))
-                scaled_rect = scaled_panel.get_rect(topright=(1250, 30))
-                screen.blit(scaled_panel, scaled_rect)
+                if rules_scale >= 0.99:
+                    screen.blit(rules_surface, rules_surface.get_rect(topright=(1250, 30)))
+                else:
+                    NEW_WIDTH = max(1, int(RULES_WIDTH * rules_scale))
+                    NEW_HEIGHT = max(1, int(RULES_HEIGHT * rules_scale))
+                    scaled_panel = pygame.transform.scale(rules_surface, (NEW_WIDTH, NEW_HEIGHT))
+                    screen.blit(scaled_panel, scaled_panel.get_rect(topright=(1250, 30)))
 
             # GALACTIC BESTIARY WINDOW
             target_bestiary_scale = 1.0 if bestiary_is_open else 0.0
             bestiary_scale += (target_bestiary_scale - bestiary_scale) * 20 * dt
+            if abs(target_bestiary_scale - bestiary_scale) < 0.01:
+                bestiary_scale = target_bestiary_scale
 
             if bestiary_scale > 0.05:
                 BESTIARY_WIDTH, BESTIARY_HEIGHT = 330, 480
@@ -668,6 +675,8 @@ async def main():
             # PASSPORTTTTTTT
             target_idk_scale = 1.0 if passport_is_opened else 0.0
             passport_scale += (target_idk_scale - passport_scale) * 20 * dt
+            if abs(target_idk_scale - passport_scale) < 0.01:
+                passport_scale = target_idk_scale
 
             if passport_scale > 0.05:
                 is_id_card = (current_alien.doc_type == "ID CARD")

@@ -9,6 +9,8 @@ class PixelButton:
         s.hover_colour = hover_colour
         s.border_colour = border_colour
         s.offset = 0
+        s._cached_text = None
+        s._text_surf = None
 
     def draw(s, screen, mouse_pos, pressed_true):
         hovered_true = s.rect.collidepoint(mouse_pos)
@@ -40,9 +42,12 @@ class PixelButton:
         pygame.draw.line(button_surface,(240,240,240),(7,7),(7,s.rect.height-8),3)
 
         #centered textt
-        text = s.font.render(s.text, True, "black")
-        text_rect = text.get_rect(center=(s.rect.width//2,s.rect.height//2))
-        button_surface.blit(text, text_rect)
+        if s._cached_text != s.text:
+            s._cached_text = s.text
+            s._text_surf = s.font.render(s.text, True, "black")
+        text_rect = s._text_surf.get_rect(center=(s.rect.width // 2, s.rect.height // 2))
+        button_surface.blit(s._text_surf, text_rect)
+        
 
         offset = int(s.offset)
         screen.blit(button_surface, (s.rect.x + offset, s.rect.y + offset))
@@ -83,3 +88,6 @@ def not_unbound_text(surface, text, font,colour,rect,start_y):
         if line:
             rendered = font.render(line, True, colour)
             surface.blit(rendered,(rect.x + 20, y))
+
+
+        
