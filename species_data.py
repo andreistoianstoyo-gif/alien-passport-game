@@ -8,8 +8,8 @@ FIRST_NAMES = [
 ]
 
 LAST_NAMES = [
-        "Kor","Xenox","De Lerak","Nueva","Busi", "Vorn", "Zyrax", "Murla"
-        "Kroll", "Naschov","Prax","Jonie", "Splik", "Torak", "Krix", "Daro"
+        "Kor","Xenox","De Lerak","Nueva","Busi", "Vorn", "Zyrax", "Durla"
+        "Kroll", "Naschkov","Prax","Jonie", "Splik", "Torak", "Krix", "Daro"
         "Bendu", "Dalv", "Qir", "Lap",
 ]
 
