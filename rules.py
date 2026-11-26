@@ -1,4 +1,5 @@
 import random
+from alien import Alien
 from species_data import PLANET_SPECIES
 
 #random rule generator
@@ -16,25 +17,46 @@ def generate_rules():
         "RULE":random.choice(RULE)
     }
 
-def check_decision(alien,active_rule,player_approval):
-    
+def evaluate_encounter(alien: Alien, active_rule: str, dialogue: dict):
+    if alien.doc_type != "PASSPORT":
+        return False, f"Wrong! Invalid doc type: {alien.doc_type} stupid ahh"
+
+    if dialogue["is lying"]:
+        return False, "Wrong! The alien lied to you!"
+
     expect = PLANET_SPECIES[alien.passport.planet]
-    is_check = True
 
     if active_rule == "Check the passport expiration date":
-        is_check = not alien.passport.is_expired()
-    elif active_rule == "Check the number of eyes":
-        is_check = (alien.eyes == expect["eyes"])
-    elif active_rule == "Check the colour of the alien":
-        is_check = (alien.colour == expect["colour"])
-    elif active_rule == "Check the colour of the limbs":
-        is_check = (alien.limbs == expect["limbs"])
-    else:
-        is_check = (
-            not alien.passport.is_expired()
-            and alien.eyes == expect["eyes"]
-            and alien.colour == expect["colour"]
-            and alien.limbs == expect["limbs"]
-        )
-    return player_approval == is_check
+        if alien.passport.is_expired():
+            return False, f"Wrong, the passport is expired...(sad)"
+        return True, ""
 
+    if active_rule == "Check the number of eyes":
+        if alien.eyes != expect["eyes"]:
+            return False, f"Wrong, {alien.passport.planet} aliens have {expect['eyes']}eyes!"
+        return True, ""
+    
+    if active_rule == "Check the colour of the alien":
+        if alien.colour != expect["colour"]:
+            return False, f"Wrong, {alien.passport.planet} aliens are {expect['colour']}!"
+        return True, ""
+
+    if active_rule == "Check the number of limbs":
+        if alien.limbs != expect["limbs"] or alien.passport.limbs != expect["limbs"]:
+            return False, f"Wrong, {alien.passport.planet} aliens have {expect['limbs']} limbs!"
+        return True, ""
+
+    if alien.passport.is_expired():
+        return False, f"Wrong! The passport expired in {alien.passport.expiration_date}!"
+    if alien.passport.limbs != expect["limbs"] or alien.limbs != expect ["limbs"]:
+        return False, f"Wrong! {alien.passport.planet} aliens have {expect['limbs']} limbs!"
+    if alien.eyes != expect["eyes"]:
+        return False, f"Wrong! {alien.passport.planet} aliens have {expect['eyes']} eyes!"
+    if alien.colour != expect["colour"]:
+        return False, f"Wrong! {alien.passport.planet} aliens are {expect['colour']}!"
+
+    return True, ""
+
+def check_decision(alien:Alien, active_rule:str , player_approval: bool):
+    is_valid = evaluate_encounter(alien, active_rule, {"is_lying":False})
+    return player_approval == is_valid
